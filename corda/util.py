@@ -17,7 +17,7 @@ class ci(int):
 def format_gid(gid):
     return re.sub(r"\.\d*", "", gid)
 
-def reaction_confidence(rule, conf_dict):
+def reaction_confidence(rule, conf_genes):
     """Calculates the confidence for the reaction based on a gene-reaction
         rule"""
     
@@ -27,7 +27,7 @@ def reaction_confidence(rule, conf_dict):
     matches = re.finditer(r"\w*\d+\.*\d*", rule)
     for m in matches:
         gid, fgid = m.group(), format_gid(m.group())
-        rep = "ci(" + str(conf_dict[fgid]) + ")" if fgid in conf_dict \
+        rep = "ci(" + str(conf_genes[fgid]) + ")" if fgid in conf_genes \
             else "ci(0)"
         rule = rule.replace(gid, rep)
     
@@ -35,12 +35,12 @@ def reaction_confidence(rule, conf_dict):
     
 
 def safe_revert_reversible(model):
-    maybe_rev = (r for r in reactions if "reflection" in r.notes)
+    maybe_rev = (r for r in model.reactions if "reflection" in r.notes)
     
     for r in maybe_rev:
         try:
             model.reactions.get_by_id(r.notes["reflection"])
         except KeyError:
-            r.notes.pop("refelection")
+            r.notes.pop("reflection")
     
     revert_to_reversible(model)
