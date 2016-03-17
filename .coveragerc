@@ -1,8 +1,8 @@
 [run]
 branch = True
-source = corda/*
-include = corda/*
+source = corda
+include = corda
 omit = */setup.py
 
 [report]
-include = corda/*
+include = *
