@@ -8,6 +8,8 @@ import unittest
 from corda import *
 from cobra import Model, Reaction, Metabolite
 from cobra.manipulation import convert_to_irreversible, revert_to_reversible
+from cobra.io import read_sbml_model
+from pkg_resources import resource_filename
 
 class TestConf(unittest.TestCase):
     
@@ -42,7 +44,7 @@ class TestRevert(unittest.TestCase):
         self.assertEqual(self.model.reactions[0].id, "r_reverse")
         self.assertFalse(self.model.reactions[0].reversibility)
         
-class TestCORDA(unittest.TestCase):
+class TestAssociation(unittest.TestCase):
     def setUp(self):
         A = Metabolite("A")
         B = Metabolite("B")
@@ -81,7 +83,33 @@ class TestCORDA(unittest.TestCase):
         self.opt.n = 1
         need = self.opt.associated(["EX_CORDA_C"], conf)
         self.assertEqual(len(need["EX_CORDA_C"]), 2)
+
+class TestCorda(unittest.TestCase):
+    def setUp(self):
+        model = read_sbml_model("data/cemet.xml")
+        conf = {}
+        for r in model.reactions: conf[r.id] = -1
+        conf["r60"] = 3
+        self.model = model
+        self.conf = conf
     
+    def test_init_works(self):
+        opt = CORDA(self.model, self.conf)
+        self.assertTrue(len(opt.conf) > 0)
     
+    def test_association_work(self):
+        opt = CORDA(self.model, self.conf)
+        need = opt.associated(["r60"])
+        self.assertTrue(len(need["r60"]) > 0)
+        
+    def test_build_works(self):
+        opt = CORDA(self.model, self.conf)
+        opt.build()
+        include = [c for c in opt.conf if opt.conf[c] == 3]
+        self.assertTrue(len(include) > 3)
+        re = opt.cobra_model("reconstruction")
+        re.optimize()
+        self.assertTrue(re.solution.f > 1e-6)
+        
 if __name__ == '__main__':
     unittest.main()
