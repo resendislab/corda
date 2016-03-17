@@ -5,7 +5,7 @@
 #  MIT license. See LICENSE for more information.
 
 import unittest
-from . import *
+from corda import *
 from cobra import Model, Reaction, Metabolite
 from cobra.manipulation import convert_to_irreversible, revert_to_reversible
 
@@ -46,22 +46,41 @@ class TestCORDA(unittest.TestCase):
     def setUp(self):
         A = Metabolite("A")
         B = Metabolite("B")
-        r1 = Reaction("EX_A")
-        r1.add_metabolites({A: -1})
-        r1.lower_bound = -1
-        r1.upper_bound= 1
-        r2 = Reaction("EX_B")
-        r2.add_metabolites({B: -1})
-        r2.lower_bound = -1
-        r2.upper_bound= 1
-        r3 = Reaction("conversion")
-        r3.add_metabolites({A: -1, B: 1})
+        C = Metabolite("C")
+        r1 = Reaction("r1")
+        r1.add_metabolites({A: -1, C: 1})
+        r2 = Reaction("r2")
+        r2.add_metabolites({B: -1, C: 1})
+        r3 = Reaction("EX_A")
+        r3.add_metabolites({A: 1})
+        r4 = Reaction("EX_B")
+        r4.add_metabolites({B: 1})
+        r5 = Reaction("EX_C")
+        r5.add_metabolites({C: -1})
         model = Model("test model")
-        model.add_reactions([r1, r2, r3])
-        conf = {"EX_A": 1, "EX_B": 3, "conversion": 2}
+        model.add_reactions([r1, r2, r3, r4, r5])
+        conf = {"r1": 1, "r2": -1, "EX_A": 1, "EX_B": 1, "EX_C": 1}
         
         self.model = model
         self.conf = conf
+        self.opt = CORDA(self.model, self.conf, met_prod=["C"])
+    
+    def test_mock_added(self):
+        r = self.opt.model.reactions.get_by_id("EX_CORDA_C")
+        self.assertTrue("mock" in r.notes)
+    
+    def test_association_works(self):
+        need = self.opt.associated(["EX_CORDA_C"])
+        self.assertEqual(list(need["EX_CORDA_C"]), ["EX_A", "r1"])
+    
+    def test_redundancy_works(self):
+        conf = self.opt.conf.copy()
+        conf["r2"] = 2
+        need = self.opt.associated(["EX_CORDA_C"], conf)
+        self.assertEqual(len(need["EX_CORDA_C"]), 4)
+        self.opt.n = 1
+        need = self.opt.associated(["EX_CORDA_C"], conf)
+        self.assertEqual(len(need["EX_CORDA_C"]), 2)
     
     
 if __name__ == '__main__':

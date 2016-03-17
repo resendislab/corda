@@ -52,7 +52,7 @@ class CORDA(object):
             for mid in met_prod:
                 r = Reaction("EX_CORDA_" + mid)
                 r.notes["mock"] = mid
-                r.add_metabolites({self.model.get_by_id(mid): -1})
+                r.add_metabolites({self.model.metabolites.get_by_id(mid): -1})
                 self.model.add_reaction(r)
                 self.conf[r.id] = 3
 
@@ -74,7 +74,7 @@ class CORDA(object):
         tidx = ((i, r.id) for i, r in enumerate(self.model.reactions) \
             if r.id in targets)
         m = self.model.copy()
-        m.add_reactions(self.r_pen)
+        m.add_reaction(self.r_pen)
         
         for r in m.reactions:
             if r.id == "EX_penalty": continue
