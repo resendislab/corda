@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/cdiener/corda.svg?branch=master)](https://travis-ci.org/cdiener/corda)
+
 # corda
 
 This is a Python implementation based on the paper of Schultz et. al.

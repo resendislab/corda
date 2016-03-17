@@ -14,7 +14,7 @@ before_install:
   - conda update --yes conda
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy pandas
-  - conda install -c bioconda cobra
+  - conda install --yes -c bioconda cobra
   - pip install codecov
   - pip install .
 
