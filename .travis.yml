@@ -20,6 +20,4 @@ install:
 
 script:
     - coverage run setup.py test
-
-after_sucess:
     - codecov
