@@ -75,12 +75,17 @@ class TestCORDAsimple(unittest.TestCase):
         del conf["EX_A"]
         self.assertRaises(ValueError, CORDA, self.model, conf)
     
+    def test_performance_metrics(self):
+        self.assertTrue("not built" in str(self.opt))
+    
     def test_impossible_req(self):
         model = self.model.copy()
         D = Metabolite("D")
         model.add_metabolites([D])
         opt = CORDA(model, self.conf, met_prod=["D"])
-        self.assertRaises(ValueError, opt.associated, ["EX_CORDA_D"])
+        need = opt.associated(["EX_CORDA_D"])
+        self.assertTrue(len(need["EX_CORDA_D"]) == 0)
+        self.assertTrue("EX_CORDA_D" in opt.impossible)
     
     def test_association_works(self):
         need = self.opt.associated(["EX_CORDA_C"])
@@ -124,13 +129,17 @@ class TestCORDAlarge(unittest.TestCase):
         include = [c for c in opt.conf if opt.conf[c] == 3]
         self.assertTrue(len(include) > 3)
     
+    def test_performance_metrics(self):
+        opt = CORDA(self.model, self.conf)
+        opt.build()
+        self.assertTrue("reconstruction complete" in str(opt))
+    
     def test_build_works(self):
         opt = CORDA(self.model, self.conf)
         opt.build()
         include = [c for c in opt.conf if opt.conf[c] == 3]
         self.assertTrue(len(include) > 3)
         re = opt.cobra_model("reconstruction")
-        for r in re.reactions: print(r.reaction)
         re.optimize()
         self.assertTrue(re.solution.f > 1e-6)
         

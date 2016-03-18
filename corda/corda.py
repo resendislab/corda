@@ -18,7 +18,7 @@ TOL = 1e-6  # Tolerance to judge whether a flux is close to zero
 class CORDA(object):
 
     def __init__(self, model, confidence, met_prod=None, flux_target=1, n=10, 
-        noise=0.1, penalty_factor=100, support=2, solver=None, **solver_kwargs):
+        penalty_factor=100, support=5, solver=None, **solver_kwargs):
         """Initialize parameters and model"""
         self.model = model.copy()
         self.objective = model.objective.copy()
@@ -35,15 +35,16 @@ class CORDA(object):
                 self.conf[r.id] = confidence[rev.id]
             else:
                 raise ValueError("{} missing from confidence!".format(r.id))
+        self.__conf_old = self.conf.copy()
         
+        self.built = False
         self.tflux = flux_target
         self.impossible = []
         self.n = n
-        self.noise = noise
+        self.noise = 0.5
         self.support = support
         self.pf = penalty_factor
         self.solver = solver_dict[get_solver_name() if solver is None else solver]
-        self.corda_solver = solver_dict[get_solver_name() if solver is None else solver]
         self.sargs = solver_kwargs
         
         self.m_pen = Metabolite("penalty")
@@ -67,7 +68,7 @@ class CORDA(object):
         
         for i, r in enumerate(m.reactions):
             if self.m_pen in r.metabolites and r.id != "EX_penalty":
-                self.corda_solver.change_coefficient(lp, pen_id, 
+                self.solver.change_coefficient(lp, pen_id, 
                     i, r.metabolites[self.m_pen] + noise[i])
     
     def __quiet_solve(self, so, lp, os):
@@ -75,7 +76,9 @@ class CORDA(object):
         f = open(devnull, 'w')
         sys.stdout = f
         try: sol = so.solve_problem(lp, objective_sense=os, **self.sargs)
-        finally: sys.stdout = old
+        finally: 
+            sys.stdout = old
+            f.close()
         return sol
 
     def associated(self, targets, conf=None):
@@ -93,51 +96,45 @@ class CORDA(object):
             elif conf[r.id] == -1: 
                 r.add_metabolites({self.m_pen: self.pf})
         
-        lp = self.solver.create_problem(self.model)
-        corda_lp = self.corda_solver.create_problem(m)
+        lp = self.solver.create_problem(m)
         
         needed = {}
         for rid in targets:
             ti = self.model.reactions.index(rid)
-            self.solver.change_variable_objective(lp, ti, 1.0)
-            sol = self.__quiet_solve(self.solver, lp, "maximize")
-            sol = self.solver.format_solution(lp, self.model)
-            if(sol.f < self.tflux + TOL):
-                self.impossible.append(rid) 
-                self.conf[rid] = -1
-                self.solver.change_variable_objective(lp, ti, 0.0)
-                continue
-            self.solver.change_variable_objective(lp, ti, 0.0)
             
             upper = m.reactions.get_by_id(rid).upper_bound
-            self.corda_solver.change_variable_bounds(corda_lp, ti, 
+            self.solver.change_variable_bounds(lp, ti, 
                 self.tflux, upper)
             needed[rid] = np.array([])
             for _ in range(self.n):
-                self.__perturb(corda_lp, m)
-                sol = self.__quiet_solve(self.corda_solver, corda_lp, "minimize")
-                sol = self.corda_solver.format_solution(corda_lp, m)
+                self.__perturb(lp, m)
+                sol = self.__quiet_solve(self.solver, lp, "minimize")
+                if(sol != "optimal"):
+                    self.impossible.append(rid) 
+                    needed[rid] = np.array([])
+                    self.conf[rid] = -1
+                    break
+                sol = self.solver.format_solution(lp, m)
                 need = [r for r in sol.x_dict if sol.x_dict[r] > TOL \
                     and r != "EX_penalty" and conf[r] in [-1, 1, 2]]
                 need = np.hstack([needed[rid], need])
                 needed[rid] = np.unique(need)
             
-            self.corda_solver.change_variable_bounds(corda_lp, ti, 0.0, upper)
+            self.solver.change_variable_bounds(lp, ti, 0.0, upper)
             
         return needed
 
     def build(self):
         """Constructs a tissue-specific model"""
+        if self.built: raise ValueError("Model has been constructed already!")
         
         # First iteration - find reactions required for high confidence
-        print("Stage 1...")
         include = [r.id for r in self.model.reactions if self.conf[r.id] == 3]
         need = self.associated(include)
         add = np.unique([x for v in need.values() for x in v])
         for a in add: self.conf[a] = 3
         
         # Second iteration - add the best no confidence and independent medium confidence
-        print("Stage 2...")
         include = [r.id for r in self.model.reactions if self.conf[r.id] == 1 \
             or self.conf[r.id] == 2]
         need = self.associated(include)
@@ -159,7 +156,6 @@ class CORDA(object):
             self.solver.change_variable_objective(lp, i, 0.0)
         
         # Third iteration block all non-included N+M add free reactions
-        print("Stage 3...")
         for rid, co in self.conf.items():
             if co == 1 or co == 2:
                 self.model.reactions.get_by_id(rid).upper_bound = 0.0
@@ -168,6 +164,37 @@ class CORDA(object):
         need = self.associated([k for k in self.conf if self.conf[k] == 3])
         add = np.unique([x for v in need.values() for x in v])
         for a in add: self.conf[a] = 3
+        
+        self.built = True
+        
+    def __str__(self):
+        old_counts = Counter(self.__conf_old.values())
+        if not self.built: 
+            out = "build status: not built\n" + \
+                "#reactions (including mock): {}\n".\
+                    format(len(self.__conf_old)) + \
+                "Reaction confidence:\n" + \
+                " - unclear: {}\n".format(old_counts[0]) + \
+                " - exclude: {}\n".format(old_counts[-1]) + \
+                " - low and medium: {}\n".format(old_counts[1] + \
+                    old_counts[2]) + \
+                " - high: {}\n".format(old_counts[3])
+        else:
+            old = np.array(list(self.__conf_old.values()))
+            new = np.array(list(self.conf.values()))
+            med_inc = np.sum(((old == 1) | (old == 2)) & (new == 3))
+            noc_inc = np.sum((old == -1) & (new == 3))
+            free_inc = np.sum((old == 0) & (new == 3))
+            high_inc = np.sum((old == 3) & (new == 3))
+            out = "build status: reconstruction complete\n" + \
+                "Inc. reactions:{}/{}\n".format(np.sum(new == 3), len(old)) +\
+                " - unclear: {}/{}\n".format(free_inc, old_counts[0]) + \
+                " - exclude: {}/{}\n".format(noc_inc, old_counts[-1]) + \
+                " - low and medium: {}/{}\n".format(med_inc, old_counts[1] + \
+                    old_counts[2]) + \
+                " - high: {}/{}\n".format(high_inc, old_counts[3])
+        return out
+        
 
     def cobra_model(self, name, reversible=True, bound=1000):
         new_mod = Model(name)
