@@ -25,11 +25,16 @@ def reaction_confidence(rule, conf_genes):
     
     rule = rule.replace("and", "&").replace("or", "|")
     matches = re.finditer(r"\w*\d+\.*\d*", rule)
+    shift = 0
     for m in matches:
         gid, fgid = m.group(), format_gid(m.group())
         rep = "ci(" + str(conf_genes[fgid]) + ")" if fgid in conf_genes \
             else "ci(0)"
-        rule = rule.replace(gid, rep)
+        # replace won't work here because IDs may include other IDs 
+        # for instance 1234.1 includes 34.1 and 234.1 etc.
+        s, e = m.start() + shift, m.end() + shift
+        rule = rule[:s] + rep + rule[e:]
+        shift += len(rep) - len(m.group())
     
     return eval(rule)
     

@@ -130,6 +130,7 @@ class TestCORDAlarge(unittest.TestCase):
         include = [c for c in opt.conf if opt.conf[c] == 3]
         self.assertTrue(len(include) > 3)
         re = opt.cobra_model("reconstruction")
+        for r in re.reactions: print(r.reaction)
         re.optimize()
         self.assertTrue(re.solution.f > 1e-6)
         

@@ -10,13 +10,15 @@ from cobra import Model, Metabolite, Reaction
 import numpy as np
 from collections import Counter
 from .util import safe_revert_reversible
+import sys
+from os import devnull
 
 TOL = 1e-6  # Tolerance to judge whether a flux is close to zero
 
 class CORDA(object):
 
     def __init__(self, model, confidence, met_prod=None, flux_target=1, n=10, 
-        noise=1, penalty=1e4, support=2, solver=None, **solver_kwargs):
+        noise=0.1, penalty_factor=100, support=2, solver=None, **solver_kwargs):
         """Initialize parameters and model"""
         self.model = model.copy()
         self.objective = model.objective.copy()
@@ -26,7 +28,7 @@ class CORDA(object):
         self.conf = {}
         for r in self.model.reactions:
             r.objective_coefficient = 0
-            r.upper_bound = len(self.model.reactions)*penalty + 1.0
+            r.upper_bound = 1000
             if r.id in confidence: self.conf[r.id] = confidence[r.id]
             elif "reflection" in r.notes:
                 rev = self.model.reactions.get_by_id(r.notes["reflection"])
@@ -35,10 +37,11 @@ class CORDA(object):
                 raise ValueError("{} missing from confidence!".format(r.id))
         
         self.tflux = flux_target
+        self.impossible = []
         self.n = n
         self.noise = noise
         self.support = support
-        self.penalty = penalty
+        self.pf = penalty_factor
         self.solver = solver_dict[get_solver_name() if solver is None else solver]
         self.corda_solver = solver_dict[get_solver_name() if solver is None else solver]
         self.sargs = solver_kwargs
@@ -48,7 +51,7 @@ class CORDA(object):
         self.r_pen.notes["mock"] = self.m_pen
         self.r_pen.add_metabolites({self.m_pen: -1})
         self.r_pen.objective_coefficient = 1.0
-        self.r_pen.upper_bound = 1e16
+        self.r_pen.upper_bound = 1e6
         
         if met_prod:
             for mid in met_prod:
@@ -66,35 +69,44 @@ class CORDA(object):
             if self.m_pen in r.metabolites and r.id != "EX_penalty":
                 self.corda_solver.change_coefficient(lp, pen_id, 
                     i, r.metabolites[self.m_pen] + noise[i])
+    
+    def __quiet_solve(self, so, lp, os):
+        old = sys.stdout
+        f = open(devnull, 'w')
+        sys.stdout = f
+        try: sol = so.solve_problem(lp, objective_sense=os, **self.sargs)
+        finally: sys.stdout = old
+        return sol
 
     def associated(self, targets, conf=None):
         """Gets the associated reactions for the target reactions"""
         
         if conf is None: conf = self.conf
         
-        tidx = ((i, r.id) for i, r in enumerate(self.model.reactions) \
-            if r.id in targets)
         m = self.model.copy()
         m.add_reaction(self.r_pen)
         
         for r in m.reactions:
             if r.id == "EX_penalty": continue
             if conf[r.id] == 2 or conf[r.id] == 1: 
-                r.add_metabolites({self.m_pen: np.sqrt(self.penalty)})
+                r.add_metabolites({self.m_pen: 1})
             elif conf[r.id] == -1: 
-                r.add_metabolites({self.m_pen: self.penalty})
+                r.add_metabolites({self.m_pen: self.pf})
         
         lp = self.solver.create_problem(self.model)
         corda_lp = self.corda_solver.create_problem(m)
         
         needed = {}
-        for ti, rid in tidx:
+        for rid in targets:
+            ti = self.model.reactions.index(rid)
             self.solver.change_variable_objective(lp, ti, 1.0)
-            sol = self.solver.solve_problem(lp, objective_sense="maximize", **self.sargs)
+            sol = self.__quiet_solve(self.solver, lp, "maximize")
             sol = self.solver.format_solution(lp, self.model)
-            if(sol.f < self.tflux): 
-                raise ValueError("Reaction {} can not carry sufficient flux!".\
-                    format(rid))
+            if(sol.f < self.tflux + TOL):
+                self.impossible.append(rid) 
+                self.conf[rid] = -1
+                self.solver.change_variable_objective(lp, ti, 0.0)
+                continue
             self.solver.change_variable_objective(lp, ti, 0.0)
             
             upper = m.reactions.get_by_id(rid).upper_bound
@@ -103,8 +115,7 @@ class CORDA(object):
             needed[rid] = np.array([])
             for _ in range(self.n):
                 self.__perturb(corda_lp, m)
-                sol = self.corda_solver.solve_problem(corda_lp, 
-                    objective_sense="minimize", **self.sargs)
+                sol = self.__quiet_solve(self.corda_solver, corda_lp, "minimize")
                 sol = self.corda_solver.format_solution(corda_lp, m)
                 need = [r for r in sol.x_dict if sol.x_dict[r] > TOL \
                     and r != "EX_penalty" and conf[r] in [-1, 1, 2]]
@@ -119,12 +130,14 @@ class CORDA(object):
         """Constructs a tissue-specific model"""
         
         # First iteration - find reactions required for high confidence
+        print("Stage 1...")
         include = [r.id for r in self.model.reactions if self.conf[r.id] == 3]
         need = self.associated(include)
         add = np.unique([x for v in need.values() for x in v])
         for a in add: self.conf[a] = 3
         
         # Second iteration - add the best no confidence and independent medium confidence
+        print("Stage 2...")
         include = [r.id for r in self.model.reactions if self.conf[r.id] == 1 \
             or self.conf[r.id] == 2]
         need = self.associated(include)
@@ -140,13 +153,13 @@ class CORDA(object):
         for i, r in enumerate(self.model.reactions):
             if self.conf[r.id] == 1 or self.conf[r.id] == 2:
                 self.solver.change_variable_objective(lp, i, 1.0)
-                sol = self.solver.solve_problem(lp, objective_sense="maximize", 
-                    **self.sargs)
+                sol = self.__quiet_solve(self.solver, lp, "maximize")
                 sol = self.solver.format_solution(lp, self.model)
                 if sol.f > TOL: self.conf[r.id] = 3
             self.solver.change_variable_objective(lp, i, 0.0)
         
         # Third iteration block all non-included N+M add free reactions
+        print("Stage 3...")
         for rid, co in self.conf.items():
             if co == 1 or co == 2:
                 self.model.reactions.get_by_id(rid).upper_bound = 0.0
@@ -156,7 +169,7 @@ class CORDA(object):
         add = np.unique([x for v in need.values() for x in v])
         for a in add: self.conf[a] = 3
 
-    def cobra_model(self, name, reversible=True, bound = 1000):
+    def cobra_model(self, name, reversible=True, bound=1000):
         new_mod = Model(name)
         for rid in self.conf:
             r = self.model.reactions.get_by_id(rid)
