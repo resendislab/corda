@@ -28,13 +28,11 @@ class CORDA(object):
             r.objective_coefficient = 0
             r.upper_bound = len(self.model.reactions)*penalty + 1.0
             if r.id in confidence: self.conf[r.id] = confidence[r.id]
-            elif "reflection" in r.notes: 
+            elif "reflection" in r.notes:
                 rev = self.model.reactions.get_by_id(r.notes["reflection"])
-                if rev.id not in confidence: 
-                    ValueError("{} missing from confidence!".format(rev.id))
                 self.conf[r.id] = confidence[rev.id]
             else:
-                ValueError("{} missing from confidence!".format(r.id))
+                raise ValueError("{} missing from confidence!".format(r.id))
         
         self.tflux = 1
         self.n = n

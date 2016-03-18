@@ -9,14 +9,13 @@ from corda import *
 from cobra import Model, Reaction, Metabolite
 from cobra.manipulation import convert_to_irreversible, revert_to_reversible
 from cobra.io import read_sbml_model
-from pkg_resources import resource_filename
 
 class TestConf(unittest.TestCase):
     
     def test_confidence(self):
         vals = {"g1": -1, "g2": 1, "g3": 2, "g4": 3}
         cases = [("g1 and g2 or g3", 2), ("g1 and (g2 or g3)", -1),
-            ("g1 or g2 or g4 or g5", 3), ("g3 and g6", 0)]
+            ("g1 or g2 or g4 or g5", 3), ("g3 and g6", 0), ("", 0)]
         
         for rule, res in cases:
             conf = reaction_confidence(rule, vals) 
@@ -44,7 +43,7 @@ class TestRevert(unittest.TestCase):
         self.assertEqual(self.model.reactions[0].id, "r_reverse")
         self.assertFalse(self.model.reactions[0].reversibility)
         
-class TestAssociation(unittest.TestCase):
+class TestCORDAsimple(unittest.TestCase):
     def setUp(self):
         A = Metabolite("A")
         B = Metabolite("B")
@@ -70,6 +69,18 @@ class TestAssociation(unittest.TestCase):
     def test_mock_added(self):
         r = self.opt.model.reactions.get_by_id("EX_CORDA_C")
         self.assertTrue("mock" in r.notes)
+        
+    def test_conf_check(self):
+        conf = self.conf.copy()
+        del conf["EX_A"]
+        self.assertRaises(ValueError, CORDA, self.model, conf)
+    
+    def test_impossible_req(self):
+        model = self.model.copy()
+        D = Metabolite("D")
+        model.add_metabolites([D])
+        opt = CORDA(model, self.conf, met_prod=["D"])
+        self.assertRaises(ValueError, opt.associated, ["EX_CORDA_D"])
     
     def test_association_works(self):
         need = self.opt.associated(["EX_CORDA_C"])
@@ -84,7 +95,7 @@ class TestAssociation(unittest.TestCase):
         need = self.opt.associated(["EX_CORDA_C"], conf)
         self.assertEqual(len(need["EX_CORDA_C"]), 2)
 
-class TestCorda(unittest.TestCase):
+class TestCORDAlarge(unittest.TestCase):
     def setUp(self):
         model = read_sbml_model("data/cemet.xml")
         conf = {}
@@ -102,6 +113,17 @@ class TestCorda(unittest.TestCase):
         need = opt.associated(["r60"])
         self.assertTrue(len(need["r60"]) > 0)
         
+    def test_conf_vals(self):
+        conf = self.conf.copy()
+        for r in self.model.reactions: conf[r.id] = 1
+        conf["r60"] = 3
+        conf["r42"] = 0
+        conf["r12"] = 1
+        opt = CORDA(self.model, conf)
+        opt.build()
+        include = [c for c in opt.conf if opt.conf[c] == 3]
+        self.assertTrue(len(include) > 3)
+    
     def test_build_works(self):
         opt = CORDA(self.model, self.conf)
         opt.build()
