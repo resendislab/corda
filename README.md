@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/cdiener/corda.svg?branch=master)](https://travis-ci.org/cdiener/corda)
 [![codecov.io](https://codecov.io/github/cdiener/corda/coverage.svg?branch=master)](https://codecov.io/github/cdiener/corda?branch=master)
+[![Code Health](https://landscape.io/github/cdiener/corda/master/landscape.svg?style=flat)](https://landscape.io/github/cdiener/corda/master)
 
 # corda
 

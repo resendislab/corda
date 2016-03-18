@@ -34,7 +34,7 @@ class CORDA(object):
             else:
                 raise ValueError("{} missing from confidence!".format(r.id))
         
-        self.tflux = 1
+        self.tflux = flux_target
         self.n = n
         self.noise = noise
         self.support = support
@@ -70,7 +70,7 @@ class CORDA(object):
     def associated(self, targets, conf=None):
         """Gets the associated reactions for the target reactions"""
         
-        if conf == None: conf = self.conf
+        if conf is None: conf = self.conf
         
         tidx = ((i, r.id) for i, r in enumerate(self.model.reactions) \
             if r.id in targets)
@@ -92,15 +92,16 @@ class CORDA(object):
             self.solver.change_variable_objective(lp, ti, 1.0)
             sol = self.solver.solve_problem(lp, objective_sense="maximize", **self.sargs)
             sol = self.solver.format_solution(lp, self.model)
-            if(sol.f < TOL): 
-                raise ValueError("Reaction {} can never carry flux!".format(rid))
+            if(sol.f < self.tflux): 
+                raise ValueError("Reaction {} can not carry sufficient flux!".\
+                    format(rid))
             self.solver.change_variable_objective(lp, ti, 0.0)
             
             upper = m.reactions.get_by_id(rid).upper_bound
             self.corda_solver.change_variable_bounds(corda_lp, ti, 
                 self.tflux, upper)
             needed[rid] = np.array([])
-            for i in range(self.n):
+            for _ in range(self.n):
                 self.__perturb(corda_lp, m)
                 sol = self.corda_solver.solve_problem(corda_lp, 
                     objective_sense="minimize", **self.sargs)
@@ -142,7 +143,7 @@ class CORDA(object):
                 sol = self.solver.solve_problem(lp, objective_sense="maximize", 
                     **self.sargs)
                 sol = self.solver.format_solution(lp, self.model)
-                if sol.f > TOL: self.conf[r.id] == 3
+                if sol.f > TOL: self.conf[r.id] = 3
             self.solver.change_variable_objective(lp, i, 0.0)
         
         # Third iteration block all non-included N+M add free reactions
