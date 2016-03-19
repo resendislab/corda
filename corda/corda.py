@@ -12,7 +12,6 @@ from collections import Counter
 from .util import safe_revert_reversible
 import sys
 from os import devnull
-from memory_profiler import profile
 
 TOL = 1e-6  # Tolerance to judge whether a flux is close to zero
 
