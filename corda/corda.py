@@ -12,11 +12,12 @@ from collections import Counter
 from .util import safe_revert_reversible
 import sys
 from os import devnull
+from memory_profiler import profile
 
 TOL = 1e-6  # Tolerance to judge whether a flux is close to zero
 
 class CORDA(object):
-
+    
     def __init__(self, model, confidence, met_prod=None, flux_target=1, n=10, 
         penalty_factor=100, support=5, solver=None, **solver_kwargs):
         """Initialize parameters and model"""
@@ -54,6 +55,7 @@ class CORDA(object):
         self.r_pen.objective_coefficient = 1.0
         self.r_pen.upper_bound = 1e6
         
+        
         if met_prod:
             for mid in met_prod:
                 r = Reaction("EX_CORDA_" + mid)
@@ -61,26 +63,31 @@ class CORDA(object):
                 r.add_metabolites({self.model.metabolites.get_by_id(mid): -1})
                 self.model.add_reaction(r)
                 self.conf[r.id] = 3
-
+                
     def __perturb(self, lp, m):
         noise = np.random.uniform(high=self.noise, size=len(m.reactions))
         pen_id = m.metabolites.index("penalty")
         
         for i, r in enumerate(m.reactions):
             if self.m_pen in r.metabolites and r.id != "EX_penalty":
+                coef = r.metabolites[self.m_pen]
                 self.solver.change_coefficient(lp, pen_id, 
-                    i, r.metabolites[self.m_pen] + noise[i])
+                    i, coef + noise[i])
+        
+        del noise, pen_id
     
-    def __quiet_solve(self, so, lp, os):
+    def __quiet_solve(self, lp, os):
         old = sys.stdout
         f = open(devnull, 'w')
         sys.stdout = f
-        try: sol = so.solve_problem(lp, objective_sense=os, **self.sargs)
+        try: 
+            sol = self.solver.solve_problem(lp, objective_sense=os, 
+                **self.sargs)
         finally: 
             sys.stdout = old
             f.close()
         return sol
-
+    
     def associated(self, targets, conf=None):
         """Gets the associated reactions for the target reactions"""
         
@@ -100,15 +107,14 @@ class CORDA(object):
         
         needed = {}
         for rid in targets:
-            ti = self.model.reactions.index(rid)
+            ti = m.reactions.index(rid)
             
             upper = m.reactions.get_by_id(rid).upper_bound
-            self.solver.change_variable_bounds(lp, ti, 
-                self.tflux, upper)
+            self.solver.change_variable_bounds(lp, ti, self.tflux, upper)
             needed[rid] = np.array([])
             for _ in range(self.n):
                 self.__perturb(lp, m)
-                sol = self.__quiet_solve(self.solver, lp, "minimize")
+                sol = self.__quiet_solve(lp, "minimize")
                 if(sol != "optimal"):
                     self.impossible.append(rid) 
                     needed[rid] = np.array([])
@@ -121,9 +127,9 @@ class CORDA(object):
                 needed[rid] = np.unique(need)
             
             self.solver.change_variable_bounds(lp, ti, 0.0, upper)
-            
+        del lp
         return needed
-
+    
     def build(self):
         """Constructs a tissue-specific model"""
         if self.built: raise ValueError("Model has been constructed already!")
@@ -140,7 +146,7 @@ class CORDA(object):
         need = self.associated(include)
         add = [x for v in need.values() for x in v if self.conf[x] == -1]
         count = Counter(add)
-        add = [k for k in count.keys() if count[k] >= self.support]
+        add = [k for k in count if count[k] >= self.support]
         for a in add: self.conf[a] = 3
         
         not_included = [rid for rid in self.conf if self.conf[rid] == -1]
@@ -150,7 +156,7 @@ class CORDA(object):
         for i, r in enumerate(self.model.reactions):
             if self.conf[r.id] == 1 or self.conf[r.id] == 2:
                 self.solver.change_variable_objective(lp, i, 1.0)
-                sol = self.__quiet_solve(self.solver, lp, "maximize")
+                sol = self.__quiet_solve(lp, "maximize")
                 sol = self.solver.format_solution(lp, self.model)
                 if sol.f > TOL: self.conf[r.id] = 3
             self.solver.change_variable_objective(lp, i, 0.0)
@@ -205,5 +211,8 @@ class CORDA(object):
                 new_mod.add_reaction(r)
         
         if reversible: safe_revert_reversible(new_mod)
-        new_mod.change_objective(self.objective)
+        still_valid = True
+        for r in self.objective:
+            still_valid &= (self.conf[r.id] == 3) 
+        if still_valid: new_mod.change_objective(self.objective)
         return new_mod
