@@ -13,7 +13,7 @@ from .util import safe_revert_reversible
 import sys
 from os import devnull
 
-TOL = 1e-6  # Tolerance to judge whether a flux is non-zero
+TOL = 1e-5  # Tolerance to judge whether a flux is non-zero
 
 class CORDA(object):
     
@@ -139,11 +139,13 @@ class CORDA(object):
         add = np.unique([x for v in need.values() for x in v])
         for a in add: self.conf[a] = 3
         
-        # Second iteration - add the best no confidence and independent medium confidence
+        # Second iteration - add the best no confidence and independent medium 
+        # confidence
         include = [r.id for r in self.model.reactions if self.conf[r.id] == 1 \
             or self.conf[r.id] == 2]
         need = self.associated(include)
-        add = [x for v in need.values() for x in v if self.conf[x] == -1]
+        add = [x for v in need.values() for x in v if self.conf[x] == -1 \
+            and x not in self.impossible]
         count = Counter(add)
         add = [k for k in count if count[k] >= self.support]
         for a in add: self.conf[a] = 3
@@ -167,7 +169,8 @@ class CORDA(object):
             if co == 0:
                 self.conf[rid] = -1
         need = self.associated([k for k in self.conf if self.conf[k] == 3])
-        add = np.unique([x for v in need.values() for x in v])
+        add = np.unique([x for v in need.values() for x in v \
+            if x not in self.impossible])
         for a in add: self.conf[a] = 3
         
         self.built = True
