@@ -59,7 +59,12 @@ class CORDA(object):
             for mid in met_prod:
                 r = Reaction("EX_CORDA_" + mid)
                 r.notes["mock"] = mid
-                r.add_metabolites({self.model.metabolites.get_by_id(mid): -1})
+                if type(mid) == str:
+                    r.add_metabolites({mid: -1})
+                elif type(mid) == dict:
+                    r.add_metabolites(mid)
+                else:
+                    raise ValueError("metabolite test not string or dictionary")
                 self.model.add_reaction(r)
                 self.conf[r.id] = 3
                 
