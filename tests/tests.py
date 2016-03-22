@@ -139,9 +139,9 @@ class TestCORDAlarge(unittest.TestCase):
         opt.build()
         include = [c for c in opt.conf if opt.conf[c] == 3]
         self.assertTrue(len(include) > 3)
-        re = opt.cobra_model("reconstruction")
-        re.optimize()
-        self.assertTrue(re.solution.f > 1e-6)
+        rec = opt.cobra_model("reconstruction")
+        rec.optimize()
+        self.assertTrue(rec.solution.f > 1.0e-6)
         
 if __name__ == '__main__':
     unittest.main()

@@ -14,7 +14,7 @@ import sys
 from os import devnull
 from memory_profiler import profile
 
-TOL = 1e-6  # Tolerance to judge whether a flux is close to zero
+TOL = 1e-6  # Tolerance to judge whether a flux is non-zero
 
 class CORDA(object):
     
@@ -127,7 +127,7 @@ class CORDA(object):
                 needed[rid] = np.unique(need)
             
             self.solver.change_variable_bounds(lp, ti, 0.0, upper)
-        del lp
+
         return needed
     
     def build(self):
@@ -186,14 +186,15 @@ class CORDA(object):
                     old_counts[2]) + \
                 " - high: {}\n".format(old_counts[3])
         else:
-            old = np.array(list(self.__conf_old.values()))
-            new = np.array(list(self.conf.values()))
+            rids = self.conf.keys()
+            old = np.array([self.__conf_old[k] for k in rids])
+            new = np.array([self.conf[k] for k in rids])
             med_inc = np.sum(((old == 1) | (old == 2)) & (new == 3))
             noc_inc = np.sum((old == -1) & (new == 3))
             free_inc = np.sum((old == 0) & (new == 3))
             high_inc = np.sum((old == 3) & (new == 3))
             out = "build status: reconstruction complete\n" + \
-                "Inc. reactions:{}/{}\n".format(np.sum(new == 3), len(old)) +\
+                "Inc. reactions: {}/{}\n".format(np.sum(new == 3), len(old)) +\
                 " - unclear: {}/{}\n".format(free_inc, old_counts[0]) + \
                 " - exclude: {}/{}\n".format(noc_inc, old_counts[-1]) + \
                 " - low and medium: {}/{}\n".format(med_inc, old_counts[1] + \
