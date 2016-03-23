@@ -14,6 +14,7 @@ import sys
 from os import devnull
 
 TOL = 1e-5  # Tolerance to judge whether a flux is non-zero
+UPPER = 1e6 # default upper bound
 
 class CORDA(object):
     
@@ -28,7 +29,7 @@ class CORDA(object):
         self.conf = {}
         for r in self.model.reactions:
             r.objective_coefficient = 0
-            r.upper_bound = 1000
+            r.upper_bound = UPPER
             if r.id in confidence: self.conf[r.id] = confidence[r.id]
             elif "reflection" in r.notes:
                 rev = self.model.reactions.get_by_id(r.notes["reflection"])
@@ -47,26 +48,26 @@ class CORDA(object):
         self.solver = solver_dict[get_solver_name() if solver is None else solver]
         self.sargs = solver_kwargs
         
-        self.m_pen = Metabolite("penalty")
-        self.r_pen = Reaction("EX_penalty")
-        self.r_pen.notes["mock"] = self.m_pen
-        self.r_pen.add_metabolites({self.m_pen: -1})
-        self.r_pen.objective_coefficient = 1.0
-        self.r_pen.upper_bound = 1e6
-        
-        
         if met_prod:
             for mid in met_prod:
                 r = Reaction("EX_CORDA_" + mid)
                 r.notes["mock"] = mid
+                r.upper_bound = UPPER
+                self.model.add_reaction(r)
                 if type(mid) == str:
                     r.add_metabolites({mid: -1})
                 elif type(mid) == dict:
                     r.add_metabolites(mid)
                 else:
                     raise ValueError("metabolite test not string or dictionary")
-                self.model.add_reaction(r)
                 self.conf[r.id] = 3
+        
+        self.m_pen = Metabolite("penalty")
+        self.r_pen = Reaction("EX_penalty")
+        self.r_pen.notes["mock"] = self.m_pen
+        self.r_pen.add_metabolites({self.m_pen: -1})
+        self.r_pen.objective_coefficient = 1.0
+        self.r_pen.upper_bound = len(self.model.reactions)*self.pf*UPPER+1
                 
     def __perturb(self, lp, m):
         noise = np.random.uniform(high=self.noise, size=len(m.reactions))
