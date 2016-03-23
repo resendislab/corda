@@ -6,7 +6,7 @@
 
 from cobra.solvers import solver_dict, get_solver_name
 from cobra.manipulation.modify import convert_to_irreversible
-from cobra import Model, Metabolite, Reaction
+from cobra import Model, Reaction
 import numpy as np
 from collections import Counter
 from .util import safe_revert_reversible
@@ -83,7 +83,7 @@ class CORDA(object):
         return sol
     
     def __zero_objective(self, lp, m):
-        for i, r in enumerate(m.reactions):
+        for i in range(len(m.reactions)):
             self.solver.change_variable_objective(lp, i, 0.0)
     
     def associated(self, targets, conf=None):
@@ -189,12 +189,12 @@ class CORDA(object):
         if not self.built: 
             out = "build status: not built\n" + \
                 "#reactions (including mock): {}\n".\
-                    format(len(self.__conf_old)) + \
+                format(len(self.__conf_old)) + \
                 "Reaction confidence:\n" + \
                 " - unclear: {}\n".format(old_counts[0]) + \
                 " - exclude: {}\n".format(old_counts[-1]) + \
                 " - low and medium: {}\n".format(old_counts[1] + \
-                    old_counts[2]) + \
+                old_counts[2]) + \
                 " - high: {}\n".format(old_counts[3])
         else:
             rids = self.conf.keys()
@@ -209,7 +209,7 @@ class CORDA(object):
                 " - unclear: {}/{}\n".format(free_inc, old_counts[0]) + \
                 " - exclude: {}/{}\n".format(noc_inc, old_counts[-1]) + \
                 " - low and medium: {}/{}\n".format(med_inc, old_counts[1] + \
-                    old_counts[2]) + \
+                old_counts[2]) + \
                 " - high: {}/{}\n".format(high_inc, old_counts[3])
         return out
         
