@@ -27,7 +27,7 @@ def reaction_confidence(rule, conf_genes):
     matches = re.finditer(r"\w*\d+\.*\d*", rule)
     shift = 0
     for m in matches:
-        gid, fgid = m.group(), format_gid(m.group())
+        fgid = format_gid(m.group())
         rep = "ci(" + str(conf_genes[fgid]) + ")" if fgid in conf_genes \
             else "ci(0)"
         # replace won't work here because IDs may include other IDs 
