@@ -122,6 +122,7 @@ class CORDA(object):
             for _ in range(self.n):
                 self.__perturb(lp, penalties)
                 sol = self.__quiet_solve(lp, "minimize")
+                if sol != "optimal":
                     self.unstable.append(rid)
                     continue
                 sol = self.solver.format_solution(lp, m)
