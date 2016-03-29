@@ -24,7 +24,7 @@ class TestConf(unittest.TestCase):
     def test_eval_safe(self):
         cases = ["print()", "A + B", "A ^ B"]
         for ca in cases:
-            self.assertRaises(TypeError, reaction_confidence, ca, {})
+            with self.assertRaises(TypeError): reaction_confidence(ca, {})
 
     def test_none(self):
         self.assertEqual(reaction_confidence("  ", {}), 0)
