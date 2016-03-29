@@ -50,8 +50,8 @@ class CORDA(object):
         self.sargs = solver_kwargs
 
         if met_prod:
-            for mid in met_prod:
-                r = Reaction("EX_CORDA_" + mid)
+            for i, mid in enumerate(met_prod):
+                r = Reaction("EX_CORDA_" + str(i))
                 r.notes["mock"] = mid
                 r.upper_bound = UPPER
                 self.model.add_reaction(r)
@@ -60,7 +60,7 @@ class CORDA(object):
                 elif type(mid) == dict:
                     r.add_metabolites(mid)
                 else:
-                    raise ValueError("metabolite test not string or dictionary")
+                    raise TypeError("metabolite test not string or dictionary")
                 self.conf[r.id] = 3
 
     def __perturb(self, lp, pen):
