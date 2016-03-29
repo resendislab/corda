@@ -6,7 +6,7 @@
 
 from cobra.solvers import solver_dict, get_solver_name
 from cobra.manipulation.modify import convert_to_irreversible
-from cobra import Model, Metabolite, Reaction
+from cobra import Model, Reaction
 import numpy as np
 from collections import Counter
 from .util import safe_revert_reversible
@@ -14,10 +14,11 @@ import sys
 from os import devnull
 
 TOL = 1e-6  # Tolerance to judge whether a flux is non-zero
+UPPER = 1e16 # default upper bound
 
 class CORDA(object):
 
-    def __init__(self, model, confidence, met_prod=None, flux_target=1, n=10,
+    def __init__(self, model, confidence, met_prod=None, n=10,
         penalty_factor=100, support=5, solver=None, **solver_kwargs):
         """Initialize parameters and model"""
         self.model = model.copy()
@@ -28,7 +29,7 @@ class CORDA(object):
         self.conf = {}
         for r in self.model.reactions:
             r.objective_coefficient = 0
-            r.upper_bound = 1000
+            r.upper_bound = UPPER
             if r.id in confidence: self.conf[r.id] = confidence[r.id]
             elif "reflection" in r.notes:
                 rev = self.model.reactions.get_by_id(r.notes["reflection"])
@@ -38,8 +39,9 @@ class CORDA(object):
         self.__conf_old = self.conf.copy()
 
         self.built = False
-        self.tflux = flux_target
+        self.tflux = 1
         self.impossible = []
+        self.unstable = []
         self.n = n
         self.noise = 0.5
         self.support = support
@@ -47,38 +49,26 @@ class CORDA(object):
         self.solver = solver_dict[get_solver_name() if solver is None else solver]
         self.sargs = solver_kwargs
 
-        self.m_pen = Metabolite("penalty")
-        self.r_pen = Reaction("EX_penalty")
-        self.r_pen.notes["mock"] = self.m_pen
-        self.r_pen.add_metabolites({self.m_pen: -1})
-        self.r_pen.objective_coefficient = 1.0
-        self.r_pen.upper_bound = len(self.model.reactions)*100
-
-
         if met_prod:
             for mid in met_prod:
                 r = Reaction("EX_CORDA_" + mid)
                 r.notes["mock"] = mid
+                r.upper_bound = UPPER
+                self.model.add_reaction(r)
                 if type(mid) == str:
                     r.add_metabolites({mid: -1})
                 elif type(mid) == dict:
                     r.add_metabolites(mid)
                 else:
                     raise ValueError("metabolite test not string or dictionary")
-                self.model.add_reaction(r)
                 self.conf[r.id] = 3
 
-    def __perturb(self, lp, m):
-        noise = np.random.uniform(high=self.noise, size=len(m.reactions))
-        pen_id = m.metabolites.index("penalty")
+    def __perturb(self, lp, pen):
+        noise = np.random.uniform(high=self.noise, size=len(pen))
 
-        for i, r in enumerate(m.reactions):
-            if self.m_pen in r.metabolites and r.id != "EX_penalty":
-                coef = r.metabolites[self.m_pen]
-                self.solver.change_coefficient(lp, pen_id,
-                    i, coef + noise[i])
-
-        del noise, pen_id
+        for i, p in enumerate(pen):
+            if p > 0.0:
+                self.solver.change_variable_objective(lp, i, p + noise[i])
 
     def __quiet_solve(self, lp, os):
         old = sys.stdout
@@ -92,46 +82,55 @@ class CORDA(object):
             f.close()
         return sol
 
+    def __zero_objective(self, lp, m):
+        for i in range(len(m.reactions)):
+            self.solver.change_variable_objective(lp, i, 0.0)
+
     def associated(self, targets, conf=None):
         """Gets the associated reactions for the target reactions"""
 
         if conf is None: conf = self.conf
+        m = self.model
 
-        m = self.model.copy()
-        m.add_reaction(self.r_pen)
-
+        penalties = []
         for r in m.reactions:
-            if r.id == "EX_penalty": continue
             if conf[r.id] == 2 or conf[r.id] == 1:
-                r.add_metabolites({self.m_pen: 1})
+                penalties.append(1)
             elif conf[r.id] == -1:
-                r.add_metabolites({self.m_pen: self.pf})
+                penalties.append(self.pf)
+            else: penalties.append(0)
 
-        lp = self.solver.create_problem(m)
+        lp = self.solver.create_problem(self.model)
 
         needed = {}
         for rid in targets:
             ti = m.reactions.index(rid)
-
-            upper = m.reactions.get_by_id(rid).upper_bound
-            self.solver.change_variable_bounds(lp, ti, self.tflux, upper)
             needed[rid] = np.array([])
-            for _ in range(self.n):
-                self.__perturb(lp, m)
-                sol = self.__quiet_solve(lp, "minimize")
-                if(sol != "optimal"):
+
+            self.__zero_objective(lp, m)
+            self.solver.change_variable_objective(lp, ti, 1.0)
+            sol = self.__quiet_solve(lp, "maximize")
+            if sol != "optimal": self.unstable.append(rid)
+            else:
+                sol = self.solver.format_solution(lp, m)
+                if sol.f < self.tflux:
                     self.impossible.append(rid)
-                    needed[rid] = np.array([])
-                    self.conf[rid] = -1
-                    break
+                    self.conf[rid] = 0
+                    continue
+
+            self.solver.change_variable_bounds(lp, ti, self.tflux, UPPER)
+            for _ in range(self.n):
+                self.__perturb(lp, penalties)
+                sol = self.__quiet_solve(lp, "minimize")
+                    self.unstable.append(rid)
+                    continue
                 sol = self.solver.format_solution(lp, m)
                 need = [r for r in sol.x_dict if sol.x_dict[r] > TOL \
                     and r != "EX_penalty" and conf[r] in [-1, 1, 2]]
                 need = np.hstack([needed[rid], need])
                 needed[rid] = np.unique(need)
 
-            self.solver.change_variable_bounds(lp, ti, 0.0, upper)
-
+            self.solver.change_variable_bounds(lp, ti, 0.0, UPPER)
         return needed
 
     def build(self):
@@ -178,6 +177,8 @@ class CORDA(object):
             if x not in self.impossible])
         for a in add: self.conf[a] = 3
 
+        self.impossible = np.unique(self.impossible)
+        self.unstable = np.unique(self.unstable)
         self.built = True
 
     def __str__(self):
@@ -185,12 +186,12 @@ class CORDA(object):
         if not self.built:
             out = "build status: not built\n" + \
                 "#reactions (including mock): {}\n".\
-                    format(len(self.__conf_old)) + \
+                format(len(self.__conf_old)) + \
                 "Reaction confidence:\n" + \
                 " - unclear: {}\n".format(old_counts[0]) + \
                 " - exclude: {}\n".format(old_counts[-1]) + \
                 " - low and medium: {}\n".format(old_counts[1] + \
-                    old_counts[2]) + \
+                old_counts[2]) + \
                 " - high: {}\n".format(old_counts[3])
         else:
             rids = self.conf.keys()
@@ -205,7 +206,7 @@ class CORDA(object):
                 " - unclear: {}/{}\n".format(free_inc, old_counts[0]) + \
                 " - exclude: {}/{}\n".format(noc_inc, old_counts[-1]) + \
                 " - low and medium: {}/{}\n".format(med_inc, old_counts[1] + \
-                    old_counts[2]) + \
+                old_counts[2]) + \
                 " - high: {}/{}\n".format(high_inc, old_counts[3])
         return out
 

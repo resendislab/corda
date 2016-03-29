@@ -141,7 +141,7 @@ class TestCORDAlarge(unittest.TestCase):
         self.assertTrue(len(include) > 3)
         rec = opt.cobra_model("reconstruction")
         rec.optimize()
-        self.assertTrue(rec.solution.f > 1.0e-6)
+        self.assertTrue(rec.solution.f > 1.0)
         
 if __name__ == '__main__':
     unittest.main()
