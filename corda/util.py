@@ -9,13 +9,6 @@ from cobra.manipulation import revert_to_reversible
 from cobra.core.Gene import parse_gpr
 from ast import Name, And, Or, BoolOp, Expression
 
-class ci(int):
-    def __and__(self, other):
-        return min(self, other)
-
-    def __or__(self, other):
-        return max(self, other)
-
 def format_gid(gid):
     return re.sub(r"\.\d*", "", gid)
 
@@ -24,8 +17,9 @@ def safe_eval_gpr(expr, conf_genes):
     if isinstance(expr, Expression):
         return safe_eval_gpr(expr.body, conf_genes)
     elif isinstance(expr, Name):
-        if expr.id not in conf_genes: return 0
-        return conf_genes[expr.id]
+        fgid = format_gid(expr.id)
+        if fgid not in conf_genes: return 0
+        return conf_genes[fgid]
     elif isinstance(expr, BoolOp):
         op = expr.op
         if isinstance(op, Or):
