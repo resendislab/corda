@@ -13,7 +13,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='corda',
-    version='0.0.2',
+    version='0.0.3',
     description='Genome-scale model construction with CORDA',
     long_description=long_description,
     url='https://github.com/cdiener/corda',
