@@ -11,6 +11,7 @@ import numpy as np
 from collections import Counter
 from .util import safe_revert_reversible
 import sys
+import re
 from os import devnull
 
 TOL = 1e-6  # Tolerance to judge whether a flux is non-zero
@@ -48,15 +49,20 @@ class CORDA(object):
         self.pf = penalty_factor
         self.solver = solver_dict[get_solver_name() if solver is None else solver]
         self.sargs = solver_kwargs
+        self.arrow_re = re.compile("<?(-+|=+)>")
 
         if met_prod:
+            if type(met_prod) != list: met_prod = [met_prod]
             for i, mid in enumerate(met_prod):
                 r = Reaction("EX_CORDA_" + str(i))
                 r.notes["mock"] = mid
                 r.upper_bound = UPPER
                 self.model.add_reaction(r)
                 if type(mid) == str:
-                    r.add_metabolites({mid: -1})
+                    if self.arrow_re.search(mid):
+                        r.build_reaction_from_string(mid)
+                    else:
+                        r.add_metabolites({mid: -1})
                 elif type(mid) == dict:
                     r.add_metabolites(mid)
                 else:

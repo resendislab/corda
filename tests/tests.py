@@ -77,11 +77,14 @@ class TestCORDAsimple(unittest.TestCase):
     def test_mock_add(self):
         r = self.opt.model.reactions.get_by_id("EX_CORDA_0")
         self.assertTrue("mock" in r.notes)
-        opt = CORDA(self.model, self.conf, met_prod=[{"C": -1}])
+        opt = CORDA(self.model, self.conf, met_prod={"C": -1})
         r = opt.model.reactions.get_by_id("EX_CORDA_0")
         self.assertTrue("mock" in r.notes)
-        self.assertRaises(TypeError, CORDA, self.model, self.conf,
-            met_prod=[["C"]])
+        opt = CORDA(self.model, self.conf, met_prod="C ->")
+        r = opt.model.reactions.get_by_id("EX_CORDA_0")
+        self.assertTrue("mock" in r.notes)
+        with self.assertRaises(TypeError):
+            CORDA(self.model, self.conf, met_prod=[["C"]])
 
     def test_conf_check(self):
         conf = self.conf.copy()
