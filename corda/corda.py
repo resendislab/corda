@@ -15,7 +15,7 @@ import re
 from os import devnull
 
 TOL = 1e-6  # Tolerance to judge whether a flux is non-zero
-UPPER = 1e16 # default upper bound
+UPPER = 1e6 # default upper bound
 
 class CORDA(object):
 
@@ -37,12 +37,10 @@ class CORDA(object):
                 self.conf[r.id] = confidence[rev.id]
             else:
                 raise ValueError("{} missing from confidence!".format(r.id))
-        self.__conf_old = self.conf.copy()
 
         self.built = False
         self.tflux = 1
         self.impossible = []
-        self.unstable = []
         self.n = n
         self.noise = 0.5
         self.support = support
@@ -69,6 +67,8 @@ class CORDA(object):
                     raise TypeError("metabolite test not string or dictionary")
                 self.conf[r.id] = 3
 
+        self.__conf_old = self.conf.copy()
+
     def __perturb(self, lp, pen):
         noise = np.random.uniform(high=self.noise, size=len(pen))
 
@@ -92,7 +92,7 @@ class CORDA(object):
         for i in range(len(m.reactions)):
             self.solver.change_variable_objective(lp, i, 0.0)
 
-    def associated(self, targets, conf=None):
+    def associated(self, targets, conf=None, penalize_medium=True):
         """Gets the associated reactions for the target reactions"""
 
         if conf is None: conf = self.conf
@@ -100,43 +100,32 @@ class CORDA(object):
 
         penalties = []
         for r in m.reactions:
-            if conf[r.id] == 2 or conf[r.id] == 1:
+            if penalize_medium and conf[r.id] in [1,2]:
                 penalties.append(1)
             elif conf[r.id] == -1:
                 penalties.append(self.pf)
             else: penalties.append(0)
 
-        lp = self.solver.create_problem(self.model)
+        lp = self.solver.create_problem(m)
 
         needed = {}
         for rid in targets:
             ti = m.reactions.index(rid)
-            needed[rid] = np.array([])
-
+            needed[rid] = np.array([], dtype=str)
             self.__zero_objective(lp, m)
-            self.solver.change_variable_objective(lp, ti, 1.0)
-            sol = self.__quiet_solve(lp, "maximize")
-            if sol != "optimal": self.unstable.append(rid)
-            else:
-                sol = self.solver.format_solution(lp, m)
-                if sol.f < self.tflux:
-                    self.impossible.append(rid)
-                    self.conf[rid] = 0
-                    continue
-
             self.solver.change_variable_bounds(lp, ti, self.tflux, UPPER)
             for _ in range(self.n):
                 self.__perturb(lp, penalties)
                 sol = self.__quiet_solve(lp, "minimize")
                 if sol != "optimal":
-                    self.unstable.append(rid)
+                    self.impossible.append(rid)
+                    self.conf[rid] = -1
                     continue
                 sol = self.solver.format_solution(lp, m)
                 need = [r for r in sol.x_dict if sol.x_dict[r] > TOL \
-                    and r != "EX_penalty" and conf[r] in [-1, 1, 2]]
+                    and conf[r] in [-1, 1, 2] and r != rid]
                 need = np.hstack([needed[rid], need])
                 needed[rid] = np.unique(need)
-
             self.solver.change_variable_bounds(lp, ti, 0.0, UPPER)
         return needed
 
@@ -152,11 +141,10 @@ class CORDA(object):
 
         # Second iteration - add the best no confidence and independent medium
         # confidence
-        include = [r.id for r in self.model.reactions if self.conf[r.id] == 1 \
-            or self.conf[r.id] == 2]
-        need = self.associated(include)
-        add = [x for v in need.values() for x in v if self.conf[x] == -1 \
-            and x not in self.impossible]
+        include = [r.id for r in self.model.reactions \
+            if self.conf[r.id] in [1,2]]
+        need = self.associated(include, penalize_medium=False)
+        add = [x for v in need.values() for x in v if self.conf[x] == -1]
         count = Counter(add)
         add = [k for k in count if count[k] >= self.support]
         for a in add: self.conf[a] = 3
@@ -169,23 +157,23 @@ class CORDA(object):
             if self.conf[r.id] == 1 or self.conf[r.id] == 2:
                 self.solver.change_variable_objective(lp, i, 1.0)
                 sol = self.__quiet_solve(lp, "maximize")
-                sol = self.solver.format_solution(lp, self.model)
-                if sol.f > TOL: self.conf[r.id] = 3
+                if sol == "optimal":
+                    sol = self.solver.format_solution(lp, self.model)
+                    if sol.f > self.tflux: self.conf[r.id] = 3
             self.solver.change_variable_objective(lp, i, 0.0)
 
         # Third iteration block all non-included N+M add free reactions
         for rid, co in self.conf.items():
             if co == 1 or co == 2:
                 self.model.reactions.get_by_id(rid).upper_bound = 0.0
-            if co == 0:
+            elif co == 0:
                 self.conf[rid] = -1
-        need = self.associated([k for k in self.conf if self.conf[k] == 3])
-        add = np.unique([x for v in need.values() for x in v \
-            if x not in self.impossible])
+        need = self.associated([k for k in self.conf if self.conf[k] == 3],
+            penalize_medium=False)
+        add = np.unique([x for v in need.values() for x in v])
         for a in add: self.conf[a] = 3
 
-        self.impossible = np.unique(self.impossible)
-        self.unstable = np.unique(self.unstable)
+        self.impossible = np.unique(self.impossible).tolist()
         self.built = True
 
     def __str__(self):
