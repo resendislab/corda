@@ -9,10 +9,13 @@ from cobra.core.Gene import parse_gpr
 from ast import Name, And, Or, BoolOp, Expression
 
 def format_gid(gid):
+    """Internal function to strip transcript dot-notation from IDs."""
     return re.sub(r"\.\d*", "", gid)
 
 def safe_eval_gpr(expr, conf_genes):
-    """safely evaluate confidence of a gene-reaction rule"""
+    """Internal function to evaluate a gene-protein rule in an
+    injection-safe manner (hopefully).
+    """
     if isinstance(expr, Expression):
         return safe_eval_gpr(expr.body, conf_genes)
     elif isinstance(expr, Name):
@@ -34,7 +37,14 @@ def safe_eval_gpr(expr, conf_genes):
 
 def reaction_confidence(rule, conf_genes):
     """Calculates the confidence for the reaction based on a gene-reaction
-        rule"""
+    rule.
 
+    Args:
+        rule (str): A gene-reaction rule. For instance "A and B".
+        conf_genes (dict): A str->int map denoting the mapping of gene IDs
+            to expression confidence values. Allowed confidence values are -1 
+            (absent/do not include), 0 (unknown), 1 (low confidence),
+            2 (medium confidence) and 3 (high confidence).
+    """
     ast_rule, _ = parse_gpr(rule)
     return safe_eval_gpr(ast_rule, conf_genes)

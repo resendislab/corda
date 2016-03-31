@@ -18,6 +18,47 @@ TOL = 1e-6  # Tolerance to judge whether a flux is non-zero
 UPPER = 1e6 # default upper bound
 
 class CORDA(object):
+    """The reconstruction worker.
+
+    CORDA will perform the reconstruction from a base model and a confidence
+    mapping onto the reactions. Note that the reconstruction worker is *not*
+    supposed to be recycled and a new instance should be created for several
+    reconstruction runs. The object supports the `print` method in order to
+    give information about the reconstruction status and included reactions.
+
+    Args:
+        model (cobra model): A cobra model used as the "universe" for the
+            reconstruction.
+        confidence (dict): A mapping of all reaction ids in `model` to an
+            integer denoting the reaction confidence. Allowed confidence values
+            are -1 (absent/do not include), 0 (unknown), 1 (low confidence),
+            2 (medium confidence) and 3 (high confidence). See
+            `reaction_confidence` for a way to construct this dictionary.
+        met_prod (Optional[list]): Additional metabolic targets that have to be
+            achieved by the model. List elements can be given in various forms.
+            (1) A string naming a metabolite in the model will ensure that the
+            metabolite can be produced. (2) A dictionary of metabolite->int will
+            define an irreversible reaction that must be able to carry flux. (3)
+            A string representation of a reversible or irreversible reaction
+            that must be able to carry flux.
+        n (Optional[int]): The maximum amount of redundant pathways that can be
+            detected for a given high confidence reaction. For example for
+            n=5 (the default) CORDA will include *at most* 5 different pathways
+            to activate each of the high confidence reactions.
+        penalty_factor (Optional[float]): How much more to penalize -1
+            confidence in comparison to low confidence. The default is to
+            penalize 100 times more.
+        support (Optional[int]): The reconstruction will include an absent (-1)
+            reaction if it allows includion of at least `support` additional
+            medium confidence reactions.
+        solver (Optional[str]): The LP solver to use.
+
+    Attributes:
+        conf (dict): The updated confidence. All reactions with confidence = 3 are
+            included.
+        impossible (list): A list of reaction IDs that were chosen as high
+            confidence at some point but can not carry sufficient flux.
+    """
 
     def __init__(self, model, confidence, met_prod=None, n=5,
         penalty_factor=100, support=5, solver=None, **solver_kwargs):
@@ -52,12 +93,16 @@ class CORDA(object):
         for r in self.model.reactions:
             r.objective_coefficient = 0
             r.upper_bound = UPPER
+            if confidence[r.id] not in [-1, 0, 1, 2]:
+                raise ValueError("Not a valid confidence value!")
             if r.id in confidence: self.conf[r.id] = confidence[r.id]
             elif "reflection" in r.notes:
                 rev = self.model.reactions.get_by_id(r.notes["reflection"])
+                if confidence[rev.id] not in [-1, 0, 1, 2]:
+                    raise ValueError("Not a valid confidence value!")
                 self.conf[r.id] = confidence[rev.id]
             else:
-                raise ValueError("{} missing from confidence!".format(r.id))
+                raise ValueError("{} missing from confidences!".format(r.id))
 
         self.__conf_old = self.conf.copy()
         self.built = False
@@ -94,7 +139,22 @@ class CORDA(object):
             self.solver.change_variable_objective(lp, i, 0.0)
 
     def associated(self, targets, conf=None, penalize_medium=True):
-        """Gets the associated reactions for the target reactions"""
+        """Gets the associated reactions for the target reactions.
+
+        `associated` calculates the smallest subset of reactions that
+        are necessary so that the targets can carry flux.
+
+        Args:
+            targets (list): A list of reaction IDs used as targets.
+            conf (Optional[dict]): The confidences to use for penalty
+                calculation.
+            penalize_medium (Optional[bool]): Whether to penalize medium
+                confidence reactions.
+
+        Returns:
+            dict: A dictionary of str->np.array mapping the reactions IDs
+                of the targets to a numpy array of the associated reactions.
+        """
 
         if conf is None: conf = self.conf
         m = self.model
@@ -131,7 +191,17 @@ class CORDA(object):
         return needed
 
     def build(self):
-        """Constructs a tissue-specific model"""
+        """Constructs a tissue-specific model.
+
+        This function will initiate the build process and is the only
+        computation-heavy part of CORDA.
+
+        Args:
+            None.
+
+        Returns:
+            Nothing.
+        """
         if self.built: raise ValueError("Model has been constructed already!")
 
         # First iteration - find reactions required for high confidence
@@ -208,6 +278,18 @@ class CORDA(object):
 
 
     def cobra_model(self, name, reversible=True, bound=1000):
+        """Constructs a cobra model for the reconstruction.
+
+        Args:
+            name (str): The name of the cobra model.
+            reversible (Optiona[bool]): Whether the returned model should
+                be reversible. Default is yes.
+            bound (Optional[float]): The default flux bound for the reactions.
+
+        Returns:
+            A cobra model containing the reconstruction. The original objective
+            will be conserved if it is still included in the model.
+        """
         new_mod = Model(name)
         for rid in self.conf:
             r = self.model.reactions.get_by_id(rid)
