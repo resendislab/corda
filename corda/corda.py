@@ -5,11 +5,11 @@
 #  MIT license. See LICENSE for more information.
 
 from cobra.solvers import solver_dict, get_solver_name
-from cobra.manipulation.modify import convert_to_irreversible
+from cobra.manipulation.modify import convert_to_irreversible, \
+    revert_to_reversible
 from cobra import Model, Reaction
 import numpy as np
 from collections import Counter
-from .util import safe_revert_reversible
 import sys
 import re
 from os import devnull
@@ -211,10 +211,16 @@ class CORDA(object):
         for rid in self.conf:
             r = self.model.reactions.get_by_id(rid)
             if self.conf[rid] == 3 and "mock" not in r.notes:
-                r.upper_bound = bound
-                new_mod.add_reaction(r)
+                if r not in new_mod.reactions:
+                    r.upper_bound = bound
+                    new_mod.add_reaction(r)
+                if "reflection" in r.notes:
+                    rev = self.model.reactions.get_by_id(r.notes["reflection"])
+                    if rev not in new_mod.reactions:
+                        rev.upper_bound = bound
+                        new_mod.add_reaction(rev)
 
-        if reversible: safe_revert_reversible(new_mod)
+        if reversible: revert_to_reversible(new_mod)
         still_valid = True
         for r in self.objective:
             still_valid &= (self.conf[r.id] == 3)

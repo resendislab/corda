@@ -5,7 +5,6 @@
 #  MIT license. See LICENSE for more information.
 
 import re
-from cobra.manipulation import revert_to_reversible
 from cobra.core.Gene import parse_gpr
 from ast import Name, And, Or, BoolOp, Expression
 
@@ -39,15 +38,3 @@ def reaction_confidence(rule, conf_genes):
 
     ast_rule, _ = parse_gpr(rule)
     return safe_eval_gpr(ast_rule, conf_genes)
-
-
-def safe_revert_reversible(model):
-    maybe_rev = (r for r in model.reactions if "reflection" in r.notes)
-
-    for r in maybe_rev:
-        try:
-            model.reactions.get_by_id(r.notes["reflection"])
-        except KeyError:
-            r.notes.pop("reflection")
-
-    revert_to_reversible(model)

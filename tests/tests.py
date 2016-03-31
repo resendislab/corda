@@ -45,12 +45,6 @@ class TestRevert(unittest.TestCase):
     def test_remove_breaks(self):
         self.assertRaises(KeyError, revert_to_reversible, self.model)
 
-    def test_safe_revert(self):
-        safe_revert_reversible(self.model)
-        self.assertEqual(len(self.model.reactions), 1)
-        self.assertEqual(self.model.reactions[0].id, "r_reverse")
-        self.assertFalse(self.model.reactions[0].reversibility)
-
 class TestCORDAsimple(unittest.TestCase):
     def setUp(self):
         A = Metabolite("A")
