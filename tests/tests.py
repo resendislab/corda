@@ -85,6 +85,11 @@ class TestCORDAsimple(unittest.TestCase):
         del conf["EX_A"]
         self.assertRaises(ValueError, CORDA, self.model, conf)
 
+    def test_valid_conf(self):
+        conf = self.conf.copy()
+        conf["EX_A"] = 4
+        self.assertRaises(ValueError, CORDA, self.model, conf)
+
     def test_performance_metrics(self):
         self.assertTrue("not built" in str(self.opt))
 

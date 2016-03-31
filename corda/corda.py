@@ -93,12 +93,13 @@ class CORDA(object):
         for r in self.model.reactions:
             r.objective_coefficient = 0
             r.upper_bound = UPPER
-            if confidence[r.id] not in [-1, 0, 1, 2]:
-                raise ValueError("Not a valid confidence value!")
-            if r.id in confidence: self.conf[r.id] = confidence[r.id]
+            if r.id in confidence:
+                if confidence[r.id] not in [-1, 0, 1, 2, 3]:
+                    raise ValueError("Not a valid confidence value!")
+                else: self.conf[r.id] = confidence[r.id]
             elif "reflection" in r.notes:
                 rev = self.model.reactions.get_by_id(r.notes["reflection"])
-                if confidence[rev.id] not in [-1, 0, 1, 2]:
+                if confidence[rev.id] not in [-1, 0, 1, 2, 3]:
                     raise ValueError("Not a valid confidence value!")
                 self.conf[r.id] = confidence[rev.id]
             else:
