@@ -19,11 +19,32 @@ UPPER = 1e6 # default upper bound
 
 class CORDA(object):
 
-    def __init__(self, model, confidence, met_prod=None, n=10,
+    def __init__(self, model, confidence, met_prod=None, n=5,
         penalty_factor=100, support=5, solver=None, **solver_kwargs):
         """Initialize parameters and model"""
         self.model = model.copy()
         self.objective = model.objective.copy()
+
+        # Add metabolic targets as mock reactions
+        arrow_re = re.compile("<?(-+|=+)>")
+        if met_prod:
+            if type(met_prod) != list: met_prod = [met_prod]
+            for i, mid in enumerate(met_prod):
+                r = Reaction("EX_CORDA_" + str(i))
+                r.notes["mock"] = mid
+                r.upper_bound = UPPER
+                self.model.add_reaction(r)
+                if type(mid) == str:
+                    if arrow_re.search(mid):
+                        r.build_reaction_from_string(mid)
+                    else:
+                        r.add_metabolites({mid: -1})
+                elif type(mid) == dict:
+                    r.add_metabolites(mid)
+                else:
+                    raise TypeError("metabolite test not string or dictionary")
+                confidence[r.id] = 3
+
         convert_to_irreversible(self.model)
 
         # Map confidences from forward to backward reactions
@@ -38,6 +59,7 @@ class CORDA(object):
             else:
                 raise ValueError("{} missing from confidence!".format(r.id))
 
+        self.__conf_old = self.conf.copy()
         self.built = False
         self.tflux = 1
         self.impossible = []
@@ -47,27 +69,6 @@ class CORDA(object):
         self.pf = penalty_factor
         self.solver = solver_dict[get_solver_name() if solver is None else solver]
         self.sargs = solver_kwargs
-        self.arrow_re = re.compile("<?(-+|=+)>")
-
-        if met_prod:
-            if type(met_prod) != list: met_prod = [met_prod]
-            for i, mid in enumerate(met_prod):
-                r = Reaction("EX_CORDA_" + str(i))
-                r.notes["mock"] = mid
-                r.upper_bound = UPPER
-                self.model.add_reaction(r)
-                if type(mid) == str:
-                    if self.arrow_re.search(mid):
-                        r.build_reaction_from_string(mid)
-                    else:
-                        r.add_metabolites({mid: -1})
-                elif type(mid) == dict:
-                    r.add_metabolites(mid)
-                else:
-                    raise TypeError("metabolite test not string or dictionary")
-                self.conf[r.id] = 3
-
-        self.__conf_old = self.conf.copy()
 
     def __perturb(self, lp, pen):
         noise = np.random.uniform(high=self.noise, size=len(pen))
