@@ -63,4 +63,4 @@ I would say there are two major advantages:
    reconstruction for Recon 1 with mCADRE can take several hours. With the original
    Matlab implementation of CORDA this takes about 40 minutes and with CORDA
    for Python it takes less than 5 minutes. A Recon 2 reconstruction can be
-   achieved in less than an hour.
+   achieved in less than 30 minutes.

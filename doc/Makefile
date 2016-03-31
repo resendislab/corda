@@ -1,0 +1,2 @@
+all:
+	jupyter nbconvert *.ipynb
