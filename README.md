@@ -47,6 +47,10 @@ medium confidence (2) and high confidence (3). CORDA will then ensure to include
 as many high confidence reactions as possible while minimizing the inclusion
 of absent (-1) reactions while maintaining a set of metabolic requirements.
 
+## How do I use it?
+
+A small tutorial is found at https://cdiener.com/corda.
+
 ## What's the advantage over other reconstruction algorithms
 
 I would say there are two major advantages:
