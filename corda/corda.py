@@ -13,6 +13,7 @@ from collections import Counter
 import sys
 import re
 from os import devnull
+from copy import deepcopy
 
 TOL = 1e-6  # Tolerance to judge whether a flux is non-zero
 UPPER = 1e6 # default upper bound
@@ -292,14 +293,15 @@ class CORDA(object):
             will be conserved if it is still included in the model.
         """
         new_mod = Model(name)
+        m = deepcopy(self.model)
         for rid in self.conf:
-            r = self.model.reactions.get_by_id(rid)
+            r = m.reactions.get_by_id(rid)
             if self.conf[rid] == 3 and "mock" not in r.notes:
                 if r not in new_mod.reactions:
                     r.upper_bound = bound
                     new_mod.add_reaction(r)
                 if "reflection" in r.notes:
-                    rev = self.model.reactions.get_by_id(r.notes["reflection"])
+                    rev = m.reactions.get_by_id(r.notes["reflection"])
                     if rev not in new_mod.reactions:
                         rev.upper_bound = bound
                         new_mod.add_reaction(rev)

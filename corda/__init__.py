@@ -4,5 +4,5 @@
 #
 #  MIT license. See LICENSE for more information.
 
-from .util import reaction_confidence
+from .util import reaction_confidence, test_model
 from .corda import CORDA
