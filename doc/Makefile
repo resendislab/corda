@@ -1,3 +1,3 @@
 all:
-	jupyter nbconvert *.ipynb
-	cp * ..
+	jupyter-nbconvert *.ipynb
+	cp -r ./* ..
