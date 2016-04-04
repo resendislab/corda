@@ -45,6 +45,12 @@ class TestRevert(unittest.TestCase):
     def test_remove_breaks(self):
         self.assertRaises(KeyError, revert_to_reversible, self.model)
 
+class TestExamples(unittest.TestCase):
+    def test_cemet(self):
+        model = test_model()
+        self.assertEqual(len(model.reactions), 60)
+        self.assertEqual(len(model.metabolites), 43)
+
 class TestCORDAsimple(unittest.TestCase):
     def setUp(self):
         A = Metabolite("A")
@@ -117,7 +123,7 @@ class TestCORDAsimple(unittest.TestCase):
 
 class TestCORDAlarge(unittest.TestCase):
     def setUp(self):
-        model = read_sbml_model("data/cemet.xml")
+        model = test_model()
         conf = {}
         for i, r in enumerate(model.reactions):
             if i % 2 == 0: conf[r.id] = -1
