@@ -64,7 +64,7 @@ class CORDA(object):
     def __init__(self, model, confidence, met_prod=None, n=5,
         penalty_factor=100, support=5, solver=None, **solver_kwargs):
         """Initialize parameters and model"""
-        self.model = model.copy()
+        self.model = deepcopy(model)
         self.objective = model.objective.copy()
 
         # Add metabolic targets as mock reactions
