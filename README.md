@@ -30,7 +30,13 @@ conda install -c bioconda cobra
 After that you can install CORDA using the pip from conda
 
 ```bash
-pip install https://github.com/cdiener/corda/archive/master.zip
+pip install corda
+```
+
+To install the latest development version use
+
+```bash
+pip install https://github.com/cdiener/corda/archive/devel.zip
 ```
 
 After CORDA for Python comes out of its infancy I will prepare a conda package
