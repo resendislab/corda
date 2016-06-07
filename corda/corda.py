@@ -249,12 +249,33 @@ class CORDA(object):
         self.impossible = np.unique(self.impossible).tolist()
         self.built = True
 
-    def __str__(self):
-        old_counts = Counter(self.__conf_old.values())
+    def info(self, reversible=True):
+        """Gives basic performance infos about the reconstruction.
+
+        Generates an acceptably nice output describing which reactions
+        from each confidence level were included in the reconstruction.
+
+        Args:
+            reversible (Optional[boolean]): Whether the statistics should be
+            given for the model allwoing for reversible reactions or for the
+            model where each reaction is split into its forward and backward
+            reactions.
+
+        Returns:
+            A formatted output string.
+        """
+
+        if reversible:
+            m = deepcopy(self.model)
+            revert_to_reversible(m)
+            rids = [r.id for r in m.reactions]
+        else: rids = [r.id for r in self.model.reactions]
+
+        old_counts = Counter([self.__conf_old[k] for k in self.__conf_old
+            if k in rids])
         if not self.built:
             out = "build status: not built\n" + \
-                "#reactions (including mock): {}\n".\
-                format(len(self.__conf_old)) + \
+                "#reactions (including mock): {}\n".format(len(rids)) + \
                 "Reaction confidence:\n" + \
                 " - unclear: {}\n".format(old_counts[0]) + \
                 " - exclude: {}\n".format(old_counts[-1]) + \
@@ -262,7 +283,6 @@ class CORDA(object):
                 old_counts[2]) + \
                 " - high: {}\n".format(old_counts[3])
         else:
-            rids = self.conf.keys()
             old = np.array([self.__conf_old[k] for k in rids])
             new = np.array([self.conf[k] for k in rids])
             med_inc = np.sum(((old == 1) | (old == 2)) & (new == 3))
@@ -270,7 +290,7 @@ class CORDA(object):
             free_inc = np.sum((old == 0) & (new == 3))
             high_inc = np.sum((old == 3) & (new == 3))
             out = "build status: reconstruction complete\n" + \
-                "Inc. reactions: {}/{}\n".format(np.sum(new == 3), len(old)) +\
+                "Inc. reactions: {}/{}\n".format(np.sum(new == 3), len(old)) + \
                 " - unclear: {}/{}\n".format(free_inc, old_counts[0]) + \
                 " - exclude: {}/{}\n".format(noc_inc, old_counts[-1]) + \
                 " - low and medium: {}/{}\n".format(med_inc, old_counts[1] + \
@@ -278,6 +298,8 @@ class CORDA(object):
                 " - high: {}/{}\n".format(high_inc, old_counts[3])
         return out
 
+    def __str__(self):
+        return self.info(reversible=True)
 
     def cobra_model(self, name, reversible=True, bound=1000):
         """Constructs a cobra model for the reconstruction.

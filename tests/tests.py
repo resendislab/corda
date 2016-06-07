@@ -156,6 +156,8 @@ class TestCORDAlarge(unittest.TestCase):
         opt = CORDA(self.model, self.conf)
         opt.build()
         self.assertTrue("reconstruction complete" in str(opt))
+        self.assertTrue("/60" in opt.info(reversible=True))
+        self.assertTrue("/101" in opt.info(reversible=False))
 
     def test_build_works(self):
         opt = CORDA(self.model, self.conf)
