@@ -13,8 +13,8 @@ from .util import safe_revert_reversible
 import sys
 from os import devnull
 
-TOL = 1e-5  # Tolerance to judge whether a flux is non-zero
-UPPER = 1e16 # default upper bound
+TOL = 1e-6    # Tolerance to judge whether a flux is non-zero
+UPPER = 1e16  # default upper bound
 
 class CORDA(object):
 
@@ -205,7 +205,7 @@ class CORDA(object):
             free_inc = np.sum((old == 0) & (new == 3))
             high_inc = np.sum((old == 3) & (new == 3))
             out = "build status: reconstruction complete\n" + \
-                "Inc. reactions: {}/{}\n".format(np.sum(new == 3), len(old)) +\
+                "Inc. reactions: {}/{}\n".format(np.sum(new == 3), len(old)) + \
                 " - unclear: {}/{}\n".format(free_inc, old_counts[0]) + \
                 " - exclude: {}/{}\n".format(noc_inc, old_counts[-1]) + \
                 " - low and medium: {}/{}\n".format(med_inc, old_counts[1] + \
