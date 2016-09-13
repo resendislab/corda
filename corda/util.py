@@ -8,9 +8,11 @@ import re
 from cobra.core.Gene import parse_gpr
 from ast import Name, And, Or, BoolOp, Expression
 
+
 def format_gid(gid):
     """Internal function to strip transcript dot-notation from IDs."""
     return re.sub(r"\.\d*", "", gid)
+
 
 def safe_eval_gpr(expr, conf_genes):
     """Internal function to evaluate a gene-protein rule in an
@@ -20,7 +22,8 @@ def safe_eval_gpr(expr, conf_genes):
         return safe_eval_gpr(expr.body, conf_genes)
     elif isinstance(expr, Name):
         fgid = format_gid(expr.id)
-        if fgid not in conf_genes: return 0
+        if fgid not in conf_genes:
+            return 0
         return conf_genes[fgid]
     elif isinstance(expr, BoolOp):
         op = expr.op
@@ -35,6 +38,7 @@ def safe_eval_gpr(expr, conf_genes):
     else:
         raise TypeError("unsupported operation  " + repr(expr))
 
+
 def reaction_confidence(rule, conf_genes):
     """Calculates the confidence for the reaction based on a gene-reaction
     rule.
@@ -48,6 +52,7 @@ def reaction_confidence(rule, conf_genes):
     """
     ast_rule, _ = parse_gpr(rule)
     return safe_eval_gpr(ast_rule, conf_genes)
+
 
 def test_model():
     """Gets a small test model.
