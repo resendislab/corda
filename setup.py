@@ -8,12 +8,12 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
     name='corda',
-    version='0.1.2',
+    version='0.1.3',
     description='Genome-scale model construction with CORDA',
     long_description=long_description,
     url='https://github.com/cdiener/corda',
