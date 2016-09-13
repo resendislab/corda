@@ -5,8 +5,11 @@ python:
     - 3.4
     - 3.5
 
+before_install:
+    - pip install -U pip
+
 install:
-  - pip install -U pip cobra numpy scipy python-libsbml lxml codecov coverage
+  - pip install -U cobra numpy scipy python-libsbml lxml codecov coverage
   - pip install .
 
 script:
