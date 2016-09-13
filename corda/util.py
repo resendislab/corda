@@ -67,6 +67,6 @@ def test_model():
     """
     from os.path import split, join
     from cobra.io import read_sbml_model
-    this_dir, this_filename = split(__file__)
+    this_dir, _ = split(__file__)
     data_path = join(this_dir, "data", "cemet.xml")
     return read_sbml_model(data_path)
