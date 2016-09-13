@@ -22,11 +22,9 @@ How do I install it
 -------------------
 
 CORDA for Python works only for Python 3.4+ and requires
-`cobrapy <http://github.com/opencobra/cobrapy>`__ to work. We recommend
-installation via the `anaconda or
-miniconda <https://www.continuum.io/downloads>`__ distribution. After
-having a working Python installation with pip (Anaconda or Miniconda
-work fine here) you can install corda with pip
+`cobrapy <http://github.com/opencobra/cobrapy>`__ to work. After having
+a working Python installation with pip (Anaconda or Miniconda works fine
+here as well) you can install corda with pip
 
 .. code:: bash
 
@@ -36,14 +34,13 @@ This will download and install cobrapy as well. I recommend using a
 version of pip that supports manylinux builds for faster installation
 (pip>=8.1).
 
-To install the latest development version use
+For now the master branch is usually working and tested whereas all new
+features are kept in its own branch. To install from the master branch
+directly use
 
 .. code:: bash
 
-    pip install https://github.com/cdiener/corda/archive/devel.zip
-
-For now the master branch is usually working and tested whereas all new
-stuff is kept in the devel branch.
+    pip install https://github.com/cdiener/corda/archive/master.zip
 
 What do I need to run it?
 -------------------------
@@ -60,7 +57,7 @@ absent (-1) reactions while maintaining a set of metabolic requirements.
 How do I use it?
 ----------------
 
-A small tutorial is found at https://cdiener.com/corda.
+A small tutorial is found at https://cdiener.github.io/corda.
 
 What's the advantage over other reconstruction algorithms
 ---------------------------------------------------------
