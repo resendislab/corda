@@ -21,17 +21,15 @@ experimental conditions from a set of transcription or proteome measurements.
 CORDA for Python works only for Python 3.4+ and requires
 [cobrapy](http://github.com/opencobra/cobrapy) to work. We recommend
 installation via the [anaconda or miniconda](https://www.continuum.io/downloads)
-distribution. After installing anaconda or miniconda you can install cobrapy
-from the bioconda repository
-
-```bash
-conda install -c bioconda cobra
-```
-After that you can install CORDA using the pip from conda
+distribution. After having a working Python installation with pip (Anaconda or
+Miniconda work fine here) you can install corda with pip
 
 ```bash
 pip install corda
 ```
+
+This will download and install cobrapy as well. I recommend using a version of pip that
+supports manylinux builds for faster installation (pip>=8.1).
 
 To install the latest development version use
 
@@ -39,8 +37,7 @@ To install the latest development version use
 pip install https://github.com/cdiener/corda/archive/devel.zip
 ```
 
-After CORDA for Python comes out of its infancy I will prepare a conda package
-as well. For now the master branch is usually working and tested whereas all
+For now the master branch is usually working and tested whereas all
 new stuff is kept in the devel branch.
 
 ## What do I need to run it?
