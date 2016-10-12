@@ -119,7 +119,7 @@ class CORDA(object):
         self.tflux = 1
         self.impossible = []
         self.n = n
-        self.noise = 0.5
+        self.noise = 0.1
         self.support = support
         self.pf = penalty_factor
         self.solver = solver_dict[get_solver_name() if solver is None
@@ -148,6 +148,15 @@ class CORDA(object):
     def __zero_objective(self, lp, m):
         for i in range(len(m.reactions)):
             self.solver.change_variable_objective(lp, i, 0.0)
+
+    def __reduce_conf(self, conf):
+        rids = set(k.replace("_reverse", "") for k, v in conf.items())
+        red_conf = dict.fromkeys(rids, -1)
+
+        for k, v in conf.items():
+            k = k.replace("_reverse", "")
+            red_conf[k] = max(red_conf[k], v)
+        return red_conf
 
     def associated(self, targets, conf=None, penalize_medium=True):
         """Gets the associated reactions for the target reactions.
@@ -282,17 +291,16 @@ class CORDA(object):
         """
 
         if reversible:
-            m = deepcopy(self.model)
-            revert_to_reversible(m)
-            rids = [r.id for r in m.reactions]
+            conf = self.__reduce_conf(self.conf)
+            conf_old = self.__reduce_conf(self.__conf_old)
         else:
-            rids = [r.id for r in self.model.reactions]
+            conf = self.conf
+            conf_old = self.__conf_old
+        old_counts = Counter([conf_old[k] for k in conf_old])
 
-        old_counts = Counter([self.__conf_old[k] for k in self.__conf_old
-                              if k in rids])
         if not self.built:
             out = "build status: not built\n" + \
-                "#reactions (including mock): {}\n".format(len(rids)) + \
+                "#reactions (including mock): {}\n".format(len(conf_old)) + \
                 "Reaction confidence:\n" + \
                 " - unclear: {}\n".format(old_counts[0]) + \
                 " - exclude: {}\n".format(old_counts[-1]) + \
@@ -300,8 +308,8 @@ class CORDA(object):
                     old_counts[1] + old_counts[2]) + \
                 " - high: {}\n".format(old_counts[3])
         else:
-            old = np.array([self.__conf_old[k] for k in rids])
-            new = np.array([self.conf[k] for k in rids])
+            old = np.array([conf_old[k] for k in conf_old])
+            new = np.array([conf[k] for k in conf])
             med_inc = np.sum(((old == 1) | (old == 2)) & (new == 3))
             noc_inc = np.sum((old == -1) & (new == 3))
             free_inc = np.sum((old == 0) & (new == 3))
