@@ -8,14 +8,14 @@ import unittest
 from corda import *
 from cobra import Model, Reaction, Metabolite
 from cobra.manipulation import convert_to_irreversible, revert_to_reversible
-from cobra.io import read_sbml_model
+
 
 class TestConf(unittest.TestCase):
 
     def test_confidence(self):
         vals = {"g1": -1, "g2": 1, "g3": 2, "g4": 3}
         cases = [("g1 and g2 or g3", 2), ("g1 and (g2 or g3)", -1),
-            ("g1 or g2 or g4 or g5", 3), ("g3 and g6", 0), ("", 0)]
+                 ("g1 or g2 or g4 or g5", 3), ("g3 and g6", 0), ("", 0)]
 
         for rule, res in cases:
             conf = reaction_confidence(rule, vals)
@@ -24,10 +24,12 @@ class TestConf(unittest.TestCase):
     def test_eval_safe(self):
         cases = ["print()", "A + B", "A ^ B"]
         for ca in cases:
-            with self.assertRaises(TypeError): reaction_confidence(ca, {})
+            with self.assertRaises(TypeError):
+                reaction_confidence(ca, {})
 
     def test_none(self):
         self.assertEqual(reaction_confidence("  ", {}), 0)
+
 
 class TestRevert(unittest.TestCase):
 
@@ -45,11 +47,13 @@ class TestRevert(unittest.TestCase):
     def test_remove_breaks(self):
         self.assertRaises(KeyError, revert_to_reversible, self.model)
 
+
 class TestExamples(unittest.TestCase):
     def test_cemet(self):
         model = test_model()
         self.assertEqual(len(model.reactions), 60)
         self.assertEqual(len(model.metabolites), 43)
+
 
 class TestCORDAsimple(unittest.TestCase):
     def setUp(self):
@@ -110,7 +114,8 @@ class TestCORDAsimple(unittest.TestCase):
 
     def test_association_works(self):
         need = self.opt.associated(["EX_CORDA_0"])
-        self.assertEqual(list(need["EX_CORDA_0"]), ["EX_A", "r1"])
+        solutions = (["EX_A", "r1"], ["EX_B", "r2"])
+        self.assertTrue(list(need["EX_CORDA_0"]) in solutions)
 
     def test_redundancy_works(self):
         conf = self.opt.conf.copy()
@@ -121,13 +126,16 @@ class TestCORDAsimple(unittest.TestCase):
         need = self.opt.associated(["EX_CORDA_0"], conf)
         self.assertEqual(len(need["EX_CORDA_0"]), 2)
 
+
 class TestCORDAlarge(unittest.TestCase):
     def setUp(self):
         model = test_model()
         conf = {}
         for i, r in enumerate(model.reactions):
-            if i % 2 == 0: conf[r.id] = -1
-            else: conf[r.id] = 2
+            if i % 2 == 0:
+                conf[r.id] = -1
+            else:
+                conf[r.id] = 2
         conf["r60"] = 3
         self.model = model
         self.conf = conf
@@ -143,7 +151,8 @@ class TestCORDAlarge(unittest.TestCase):
 
     def test_conf_vals(self):
         conf = self.conf.copy()
-        for r in self.model.reactions: conf[r.id] = 1
+        for r in self.model.reactions:
+            conf[r.id] = 1
         conf["r60"] = 3
         conf["r42"] = 0
         conf["r12"] = 1

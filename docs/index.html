@@ -11951,7 +11951,7 @@ div#notebook {
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">corda</span> <span class="k">import</span> <span class="n">CORDA</span>
 
-<span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span>
+<span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 <span class="n">opt</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span>
 </pre></div>
@@ -11967,9 +11967,9 @@ div#notebook {
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>build status: reconstruction complete
-Inc. reactions: 32/60
+Inc. reactions: 28/60
  - unclear: 0/0
- - exclude: 31/59
+ - exclude: 27/59
  - low and medium: 0/0
  - high: 1/1
 
@@ -11986,7 +11986,7 @@ Inc. reactions: 32/60
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The metric you see are for reversible reactions. We can obtain the irreversible reconstruction metrics by using:</p>
+<p>The metric you sare for reversible reactions. We can obtain the irreversible reconstruction metrics by using:</p>
 
 </div>
 </div>
@@ -12010,9 +12010,9 @@ Inc. reactions: 32/60
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>build status: reconstruction complete
-Inc. reactions: 32/101
+Inc. reactions: 28/101
  - unclear: 0/0
- - exclude: 31/100
+ - exclude: 27/100
  - low and medium: 0/0
  - high: 1/1
 
@@ -12029,7 +12029,44 @@ Inc. reactions: 32/101
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>This gives a reconstruction that looks like this (red denotes included reactions):
+<p>In order to see the list of reactions in the reconstructed model without specifically creating the new model you can use the following snippet.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">([</span><span class="n">opt</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">reaction</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">opt</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="mi">3</span><span class="p">])</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>[&#39;adp + pi --&gt; atp&#39;, &#39; --&gt; lac_L&#39;, &#39;ru5p_D --&gt; r5p&#39;, &#39;amp --&gt; &#39;, &#39;lac_L + nad --&gt; nadh + pyr&#39;, &#39; --&gt; adp&#39;, &#39;e4p + f6p --&gt; g3p + s7p&#39;, &#39;f6p + g3p --&gt; e4p + xu5p_D&#39;, &#39;atp + r5p --&gt; amp + prpp&#39;, &#39;g3p + nad + pi --&gt; 13dpg + nadh&#39;, &#39;gln --&gt; glu&#39;, &#39;atp + pyr --&gt; adp + oaa + pi&#39;, &#39; --&gt; g1p&#39;, &#39; --&gt; gln&#39;, &#39;atp + f6p --&gt; adp + fdp&#39;, &#39; --&gt; pi&#39;, &#39;g6p --&gt; f6p&#39;, &#39;13dpg --&gt; 3pg + pi&#39;, &#39;xu5p_D --&gt; ru5p_D&#39;, &#39;0.39253 3pg + 20.7045 atp + 0.15446 cit + 0.38587 glu + 0.35261 oaa + 0.053446 prpp + 0.50563 pyr --&gt; 20.6508 adp + 20.6508 pi&#39;, &#39;nadh --&gt; nad&#39;, &#39;g3p + s7p --&gt; r5p + xu5p_D&#39;, &#39;icit --&gt; cit&#39;, &#39;fdp --&gt; dhap + g3p&#39;, &#39;dhap --&gt; g3p&#39;, &#39;g1p --&gt; g6p&#39;, &#39;glu + nad --&gt; akg + nadh&#39;, &#39;akg + nadh --&gt; icit + nad&#39;]
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This gives a reconstruction that looks like this (orange denotes included reactions):
 <img src="reconstruction.png" alt="reconstruction"></p>
 
 </div>
@@ -12047,7 +12084,7 @@ Inc. reactions: 32/101
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">met_prod</span><span class="o">=</span><span class="s2">&quot;pep&quot;</span><span class="p">)</span>
@@ -12066,9 +12103,9 @@ Inc. reactions: 32/101
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>build status: reconstruction complete
-Inc. reactions: 38/61
+Inc. reactions: 31/61
  - unclear: 0/0
- - exclude: 36/59
+ - exclude: 29/59
  - low and medium: 0/0
  - high: 2/2
 
@@ -12092,11 +12129,10 @@ Inc. reactions: 38/61
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">rec</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">cobra_model</span><span class="p">(</span><span class="s2">&quot;plus_pep&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">reactions</span><span class="p">))</span>
 <span class="n">use</span> <span class="o">=</span> <span class="n">rec</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">pep</span><span class="o">.</span><span class="n">reactions</span>
 <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">use</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">reaction</span><span class="p">)</span>
 </pre></div>
@@ -12111,9 +12147,7 @@ Inc. reactions: 38/61
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>37
-gtp + oaa &lt;=&gt; gdp + pep
-2pg &lt;=&gt; pep
+<pre>2pg &lt;=&gt; pep
 </pre>
 </div>
 </div>
@@ -12127,14 +12161,15 @@ gtp + oaa &lt;=&gt; gdp + pep
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>By default CORDA uses redundancy. This means, in case there are several minimal pathways to reach your objective, CORDA will include several of those (which is good since it gives your model some robustness). If we do not want that feature we can modify the parameter n in the CORDA initializer which denotes the maximum number of redundant pathways to include.</p>
+<p>This is the unique solution for that additional constraint because it only includes 2 new reactions (3pg --&gt; 2pg --&gt; pep). The alternative would be using oxaloacetate, however that would require an additional import og GTP and a sink for GDP and would thus be more expensive (3 reactions).</p>
+<p>By default CORDA uses redundancy. This means, in case there are several minimal pathways to reach your objective, CORDA will include several of those (which is good since it gives your model some robustness). In this case this did not happen since the best solution was unique. If we do not want that feature we can modify the parameter n in the CORDA initializer which denotes the maximum number of redundant pathways to include.</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">met_prod</span><span class="o">=</span><span class="s2">&quot;pep&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -12156,8 +12191,8 @@ gtp + oaa &lt;=&gt; gdp + pep
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>33
-gtp + oaa &lt;=&gt; gdp + pep
+<pre>30
+2pg &lt;=&gt; pep
 </pre>
 </div>
 </div>
@@ -12171,10 +12206,23 @@ gtp + oaa &lt;=&gt; gdp + pep
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>As we can see we can now produce pep via oaa alone. However, the model will now be less robust to deletions.</p>
+<p>Which gives the same solution in that case.</p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+</div>
+</div>
+</div>
+
 </div>
     </div>
   </div>

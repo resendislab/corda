@@ -1,2 +1,2 @@
 all:
-	jupyter-nbconvert *.ipynb
+	jupyter-nbconvert --execute *.ipynb

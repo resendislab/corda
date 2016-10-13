@@ -17,6 +17,7 @@ from copy import deepcopy
 
 TOL = 1e-6      # Tolerance to judge whether a flux is non-zero
 UPPER = 1e6     # default upper bound
+UN = (1e-6, 1e-4)     # uniform noise
 
 
 class CORDA(object):
@@ -119,7 +120,6 @@ class CORDA(object):
         self.tflux = 1
         self.impossible = []
         self.n = n
-        self.noise = 0.1
         self.support = support
         self.pf = penalty_factor
         self.solver = solver_dict[get_solver_name() if solver is None
@@ -127,10 +127,10 @@ class CORDA(object):
         self.sargs = solver_kwargs
 
     def __perturb(self, lp, pen):
-        noise = np.random.uniform(high=self.noise, size=len(pen))
+        noise = np.random.uniform(low=UN[0], high=UN[1], size=len(pen))
 
         for i, p in enumerate(pen):
-            if p > 0.0:
+            if p < 2.0:
                 self.solver.change_variable_objective(lp, i, p + noise[i])
 
     def __quiet_solve(self, lp, os):
@@ -154,8 +154,8 @@ class CORDA(object):
         red_conf = dict.fromkeys(rids, -1)
 
         for k, v in conf.items():
-            k = k.replace("_reverse", "")
-            red_conf[k] = max(red_conf[k], v)
+            kr = k.replace("_reverse", "")
+            red_conf[kr] = max(red_conf[kr], v)
         return red_conf
 
     def associated(self, targets, conf=None, penalize_medium=True):
@@ -309,7 +309,7 @@ class CORDA(object):
                 " - high: {}\n".format(old_counts[3])
         else:
             old = np.array([conf_old[k] for k in conf_old])
-            new = np.array([conf[k] for k in conf])
+            new = np.array([conf[k] for k in conf_old])
             med_inc = np.sum(((old == 1) | (old == 2)) & (new == 3))
             noc_inc = np.sum((old == -1) & (new == 3))
             free_inc = np.sum((old == 0) & (new == 3))
