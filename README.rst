@@ -70,10 +70,10 @@ I would say there are two major advantages:
    reactions) included together with CORDA the reconstruction uses the
    following times:
 
-   cglpk: 0.02 s
-   cplex: 0.30 s
-   gurobi: 0.12 s
-   mosek: 0.23 s
+   - cglpk: 0.02 s
+   - cplex: 0.30 s
+   - gurobi: 0.12 s
+   - mosek: 0.23 s
 
 2. It's fast. CORDA for Python uses a strategy similar to FastFVA, where
    a previous solution basis is recycled repeatedly (speed-up of ~4-10
