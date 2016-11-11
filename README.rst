@@ -1,4 +1,4 @@
-|Build Status| |codecov.io| |Code Health|
+|travis| |appveyor| |codecov.io| |Code Health|
 
 CORDA for Python
 ================
@@ -83,8 +83,10 @@ I would say there are two major advantages:
    minutes. A Recon 2 reconstruction can be achieved in less than 30
    minutes.
 
-.. |Build Status| image:: https://travis-ci.org/cdiener/corda.svg?branch=master
+.. |travis| image:: https://travis-ci.org/cdiener/corda.svg?branch=master
    :target: https://travis-ci.org/cdiener/corda
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/14cd6e4vbh6l2csr/branch/master?svg=true
+   :target: https://ci.appveyor.com/project/cdiener/corda/branch/master
 .. |codecov.io| image:: https://codecov.io/github/cdiener/corda/coverage.svg?branch=master
    :target: https://codecov.io/github/cdiener/corda?branch=master
 .. |Code Health| image:: https://landscape.io/github/cdiener/corda/master/landscape.svg?style=flat
