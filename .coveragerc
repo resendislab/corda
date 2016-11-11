@@ -2,7 +2,10 @@
 branch = True
 source = corda
 include = corda
-omit = */setup.py
+omit =
+    */setup.py
+    corda/_*.py
+    tests/*
 
 [report]
 include = *
