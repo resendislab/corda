@@ -17,7 +17,7 @@ install:
   # We need wheel installed to build wheels
   - "%PYTHON%\\python.exe -m pip install -U pip"
   - "%PYTHON%\\python.exe -m pip install wheel pytest"
-  - "%PYTHON%\\python.exe -m pip install cobra numpy scipy python-libsbml lxml"
+  - "%PYTHON%\\python.exe -m pip install cobra numpy python-libsbml lxml"
 
 build: off
 
