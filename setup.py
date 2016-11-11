@@ -4,6 +4,7 @@
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
+import versioneer
 
 here = path.abspath(path.dirname(__file__))
 
@@ -13,7 +14,8 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='corda',
-    version='0.2.0',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description='Genome-scale model construction with CORDA',
     long_description=long_description,
     url='https://github.com/cdiener/corda',

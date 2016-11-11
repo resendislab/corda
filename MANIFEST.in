@@ -1,0 +1,2 @@
+include versioneer.py
+include corda/_version.py
