@@ -116,8 +116,8 @@ class CORDA(object):
                 else:
                     self.conf[r.id] = confidence[r.id]
                     self.conf[r.reverse_id] = confidence[r.id]
-                    self.redundancies[r.id] = -1
-                    self.redundancies[r.reverse_id] = -1
+                    self.redundancies[r.id] = 0
+                    self.redundancies[r.reverse_id] = 0
             else:
                 raise ValueError("{} missing from confidences!".format(r.id))
 

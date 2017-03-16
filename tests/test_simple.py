@@ -84,11 +84,11 @@ class TestCORDAsimple:
         opt = CORDA(mod, conf, met_prod="C ->")
         need = opt.associated(["EX_CORDA_0"], conf)
         assert len(need) == 4
-        assert opt.redundancies["EX_CORDA_0"] == 1
+        assert opt.redundancies["EX_CORDA_0"] == 2
         opt = CORDA(mod, conf, met_prod="C ->", n=1)
         need = opt.associated(["EX_CORDA_0"], conf)
         assert len(need) == 2
-        assert opt.redundancies["EX_CORDA_0"] == 0
+        assert opt.redundancies["EX_CORDA_0"] == 1
 
 
 if __name__ == '__main__':
