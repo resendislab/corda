@@ -89,6 +89,7 @@ class CORDA(object):
                 r.notes["mock"] = mid
                 r.upper_bound = UPPER
                 self.model.add_reactions([r])
+                self.mocks.append(r)
                 if type(mid) == str:
                     if arrow_re.search(mid):
                         r.build_reaction_from_string(mid)

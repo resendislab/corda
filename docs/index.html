@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8" />
-<title>index</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>index</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 <style type="text/css">
@@ -13,8 +11,8 @@
 *
 */
 /*!
- * Bootstrap v3.3.6 (http://getbootstrap.com)
- * Copyright 2011-2015 Twitter, Inc.
+ * Bootstrap v3.3.7 (http://getbootstrap.com)
+ * Copyright 2011-2016 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
@@ -1109,7 +1107,6 @@ a:focus {
   text-decoration: underline;
 }
 a:focus {
-  outline: thin dotted;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -2538,7 +2535,6 @@ select[size] {
 input[type="file"]:focus,
 input[type="radio"]:focus,
 input[type="checkbox"]:focus {
-  outline: thin dotted;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -3029,7 +3025,6 @@ select[multiple].input-lg {
 .btn.focus,
 .btn:active.focus,
 .btn.active.focus {
-  outline: thin dotted;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -8760,6 +8755,9 @@ body > #header .header-bar {
     margin-left: 10px;
   }
 }
+[dir="rtl"] #ipython_notebook {
+  float: right !important;
+}
 #noscript {
   width: auto;
   padding-top: 16px;
@@ -8962,8 +8960,14 @@ span#login_widget > .button .badge,
  *
  * Author: Jupyter Development Team
  */
+[dir="rtl"] #tabs li {
+  float: right;
+}
 ul#tabs {
   margin-bottom: 4px;
+}
+[dir="rtl"] ul#tabs {
+  margin-right: 0px;
 }
 ul#tabs a {
   padding-top: 6px;
@@ -8986,6 +8990,16 @@ ul.breadcrumb span {
 }
 .list_toolbar .tree-buttons {
   padding-top: 1px;
+}
+[dir="rtl"] .list_toolbar .tree-buttons {
+  float: left !important;
+}
+[dir="rtl"] .list_toolbar .pull-right {
+  padding-top: 1px;
+  float: left !important;
+}
+[dir="rtl"] .list_toolbar .pull-left {
+  float: right !important;
 }
 .dynamic-buttons {
   padding-top: 3px;
@@ -9122,6 +9136,9 @@ ul.breadcrumb span {
 #tree-selector {
   padding-right: 0px;
 }
+[dir="rtl"] #tree-selector a {
+  float: right;
+}
 #button-select-all {
   min-width: 50px;
 }
@@ -9211,6 +9228,9 @@ ul#new-menu {
   left: auto;
   right: 0;
 }
+[dir="rtl"] #new-menu {
+  text-align: right;
+}
 .kernel-menu-icon {
   padding-right: 12px;
   width: 24px;
@@ -9255,6 +9275,9 @@ ul#new-menu {
 }
 #running .panel-group .panel .panel-body .list_container .list_item:last-child {
   border-bottom: 0px;
+}
+[dir="rtl"] #running .col-sm-8 {
+  float: right !important;
 }
 .delete-button {
   display: none;
@@ -9551,6 +9574,7 @@ div.cell.selected.jupyter-soft-selected {
   }
 }
 div.inner_cell {
+  min-width: 0;
   /* Old browsers */
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -9571,11 +9595,6 @@ div.inner_cell {
   box-flex: 1;
   /* Modern browsers */
   flex: 1;
-}
-@-moz-document url-prefix() {
-  div.inner_cell {
-    overflow-x: hidden;
-  }
 }
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
@@ -11246,7 +11265,7 @@ div#pager .ui-resizable-handle::after {
 }
 .shortcut_key {
   display: inline-block;
-  width: 20ex;
+  width: 21ex;
   text-align: right;
   font-family: monospace;
 }
@@ -11558,6 +11577,7 @@ ul.typeahead-list > li > a {
   box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
 }
 .terminal-app .terminal {
+  width: 100%;
   float: left;
   font-family: monospace;
   color: white;
@@ -11571,6 +11591,9 @@ ul.typeahead-list > li > a {
 .terminal-app .terminal dummy-screen {
   line-height: 1em;
   font-size: 14px;
+}
+.terminal-app .terminal .xterm-rows {
+  padding: 10px;
 }
 .terminal-app .terminal-cursor {
   color: black;
@@ -11631,8 +11654,10 @@ ul.typeahead-list > li > a {
 .highlight .mh { color: #666666 } /* Literal.Number.Hex */
 .highlight .mi { color: #666666 } /* Literal.Number.Integer */
 .highlight .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight .sa { color: #BA2121 } /* Literal.String.Affix */
 .highlight .sb { color: #BA2121 } /* Literal.String.Backtick */
 .highlight .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight .dl { color: #BA2121 } /* Literal.String.Delimiter */
 .highlight .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
 .highlight .s2 { color: #BA2121 } /* Literal.String.Double */
 .highlight .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
@@ -11643,9 +11668,11 @@ ul.typeahead-list > li > a {
 .highlight .s1 { color: #BA2121 } /* Literal.String.Single */
 .highlight .ss { color: #19177C } /* Literal.String.Symbol */
 .highlight .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #0000FF } /* Name.Function.Magic */
 .highlight .vc { color: #19177C } /* Name.Variable.Class */
 .highlight .vg { color: #19177C } /* Name.Variable.Global */
 .highlight .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight .vm { color: #19177C } /* Name.Variable.Magic */
 .highlight .il { color: #666666 } /* Literal.Number.Integer.Long */
     </style>
 <style type="text/css">
@@ -11806,7 +11833,9 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[1]:</div>
+<div class="output_area">
+<div class="prompt output_prompt">Out[1]:</div>
+
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -11857,7 +11886,9 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[2]:</div>
+<div class="output_area">
+<div class="prompt output_prompt">Out[2]:</div>
+
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -11896,7 +11927,9 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[3]:</div>
+<div class="output_area">
+<div class="prompt output_prompt">Out[3]:</div>
+
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -11951,7 +11984,7 @@ div#notebook {
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">corda</span> <span class="k">import</span> <span class="n">CORDA</span>
 
-<span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span>
 <span class="n">opt</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span>
 </pre></div>
@@ -11964,55 +11997,14 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt"></div>
+<div class="output_area">
+<div class="prompt"></div>
+
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>build status: reconstruction complete
-Inc. reactions: 28/60
+Inc. reactions: 33/60
  - unclear: 0/0
- - exclude: 27/59
- - low and medium: 0/0
- - high: 1/1
-
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>The metric you sare for reversible reactions. We can obtain the irreversible reconstruction metrics by using:</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">reversible</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>build status: reconstruction complete
-Inc. reactions: 28/101
- - unclear: 0/0
- - exclude: 27/100
+ - exclude: 32/59
  - low and medium: 0/0
  - high: 1/1
 
@@ -12036,10 +12028,10 @@ Inc. reactions: 28/101
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">([</span><span class="n">opt</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">reaction</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">opt</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="mi">3</span><span class="p">])</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">([</span><span class="n">opt</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">reaction</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">used</span> <span class="ow">in</span> <span class="n">opt</span><span class="o">.</span><span class="n">included</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">used</span><span class="p">])</span>
 </pre></div>
 
 </div>
@@ -12050,9 +12042,11 @@ Inc. reactions: 28/101
 <div class="output">
 
 
-<div class="output_area"><div class="prompt"></div>
+<div class="output_area">
+<div class="prompt"></div>
+
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>[&#39;adp + pi --&gt; atp&#39;, &#39; --&gt; lac_L&#39;, &#39;ru5p_D --&gt; r5p&#39;, &#39;amp --&gt; &#39;, &#39;lac_L + nad --&gt; nadh + pyr&#39;, &#39; --&gt; adp&#39;, &#39;e4p + f6p --&gt; g3p + s7p&#39;, &#39;f6p + g3p --&gt; e4p + xu5p_D&#39;, &#39;atp + r5p --&gt; amp + prpp&#39;, &#39;g3p + nad + pi --&gt; 13dpg + nadh&#39;, &#39;gln --&gt; glu&#39;, &#39;atp + pyr --&gt; adp + oaa + pi&#39;, &#39; --&gt; g1p&#39;, &#39; --&gt; gln&#39;, &#39;atp + f6p --&gt; adp + fdp&#39;, &#39; --&gt; pi&#39;, &#39;g6p --&gt; f6p&#39;, &#39;13dpg --&gt; 3pg + pi&#39;, &#39;xu5p_D --&gt; ru5p_D&#39;, &#39;0.39253 3pg + 20.7045 atp + 0.15446 cit + 0.38587 glu + 0.35261 oaa + 0.053446 prpp + 0.50563 pyr --&gt; 20.6508 adp + 20.6508 pi&#39;, &#39;nadh --&gt; nad&#39;, &#39;g3p + s7p --&gt; r5p + xu5p_D&#39;, &#39;icit --&gt; cit&#39;, &#39;fdp --&gt; dhap + g3p&#39;, &#39;dhap --&gt; g3p&#39;, &#39;g1p --&gt; g6p&#39;, &#39;glu + nad --&gt; akg + nadh&#39;, &#39;akg + nadh --&gt; icit + nad&#39;]
+<pre>[&#39;cit &lt;=&gt; icit&#39;, &#39;icit + nad &lt;=&gt; akg + nadh&#39;, &#39;fdp &lt;=&gt; dhap + g3p&#39;, &#39; --&gt; adp&#39;, &#39;g6p &lt;=&gt; f6p&#39;, &#39; &lt;=&gt; gln&#39;, &#39;r5p &lt;=&gt; ru5p_D&#39;, &#39; &lt;=&gt; pi&#39;, &#39;mal_L + nad &lt;=&gt; nadh + oaa&#39;, &#39;atp + r5p &lt;=&gt; amp + prpp&#39;, &#39;0.39253 3pg + 20.7045 atp + 0.15446 cit + 0.38587 glu + 0.35261 oaa + 0.053446 prpp + 0.50563 pyr --&gt; 20.6508 adp + 20.6508 pi&#39;, &#39; --&gt; g1p&#39;, &#39;3pg + atp &lt;=&gt; 13dpg + adp&#39;, &#39; &lt;=&gt; amp&#39;, &#39;nadh --&gt; nad&#39;, &#39;atp + f6p --&gt; adp + fdp&#39;, &#39;e4p + xu5p_D &lt;=&gt; f6p + g3p&#39;, &#39;icit + nadp &lt;=&gt; akg + nadph&#39;, &#39;dhap &lt;=&gt; g3p&#39;, &#39;gln &lt;=&gt; glu&#39;, &#39;g1p &lt;=&gt; g6p&#39;, &#39;mal_L + nadp &lt;=&gt; nadph + pyr&#39;, &#39;atp + pyr --&gt; adp + oaa + pi&#39;, &#39;glu + nadp &lt;=&gt; akg + nadph&#39;, &#39;glu + nad &lt;=&gt; akg + nadh&#39;, &#39;ru5p_D &lt;=&gt; xu5p_D&#39;, &#39;adp + pi --&gt; atp&#39;, &#39;lac_L &lt;=&gt; &#39;, &#39;g3p + s7p &lt;=&gt; e4p + f6p&#39;, &#39;lac_L + nad &lt;=&gt; nadh + pyr&#39;, &#39;g3p + nad + pi &lt;=&gt; 13dpg + nadh&#39;, &#39;r5p + xu5p_D &lt;=&gt; g3p + s7p&#39;, &#39;mal_L + nad &lt;=&gt; nadh + pyr&#39;]
 </pre>
 </div>
 </div>
@@ -12084,7 +12078,7 @@ Inc. reactions: 28/101
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">met_prod</span><span class="o">=</span><span class="s2">&quot;pep&quot;</span><span class="p">)</span>
@@ -12100,12 +12094,14 @@ Inc. reactions: 28/101
 <div class="output">
 
 
-<div class="output_area"><div class="prompt"></div>
+<div class="output_area">
+<div class="prompt"></div>
+
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>build status: reconstruction complete
-Inc. reactions: 31/61
+Inc. reactions: 39/61
  - unclear: 0/0
- - exclude: 29/59
+ - exclude: 37/59
  - low and medium: 0/0
  - high: 2/2
 
@@ -12129,11 +12125,12 @@ Inc. reactions: 31/61
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">rec</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">cobra_model</span><span class="p">(</span><span class="s2">&quot;plus_pep&quot;</span><span class="p">)</span>
 <span class="n">use</span> <span class="o">=</span> <span class="n">rec</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">pep</span><span class="o">.</span><span class="n">reactions</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;# of redundant pathway for pep =&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">redundancies</span><span class="p">[</span><span class="s2">&quot;EX_CORDA_0&quot;</span><span class="p">])</span>
 <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">use</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">reaction</span><span class="p">)</span>
 </pre></div>
 
@@ -12145,53 +12142,12 @@ Inc. reactions: 31/61
 <div class="output">
 
 
-<div class="output_area"><div class="prompt"></div>
+<div class="output_area">
+<div class="prompt"></div>
+
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>2pg &lt;=&gt; pep
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>This is the unique solution for that additional constraint because it only includes 2 new reactions (3pg --&gt; 2pg --&gt; pep). The alternative would be using oxaloacetate, however that would require an additional import og GTP and a sink for GDP and would thus be more expensive (3 reactions).</p>
-<p>By default CORDA uses redundancy. This means, in case there are several minimal pathways to reach your objective, CORDA will include several of those (which is good since it gives your model some robustness). In this case this did not happen since the best solution was unique. If we do not want that feature we can modify the parameter n in the CORDA initializer which denotes the maximum number of redundant pathways to include.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[10]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">met_prod</span><span class="o">=</span><span class="s2">&quot;pep&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">opt</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
-
-<span class="n">rec_min</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">cobra_model</span><span class="p">(</span><span class="s2">&quot;plus_pep_nored&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rec_min</span><span class="o">.</span><span class="n">reactions</span><span class="p">))</span>
-<span class="n">use</span> <span class="o">=</span> <span class="n">rec_min</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">pep</span><span class="o">.</span><span class="n">reactions</span>
-<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">use</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">reaction</span><span class="p">)</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>30
+<pre># of redundant pathway for pep = 2
+gtp + oaa &lt;=&gt; gdp + pep
 2pg &lt;=&gt; pep
 </pre>
 </div>
@@ -12206,25 +12162,64 @@ Inc. reactions: 31/61
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Which gives the same solution in that case.</p>
+<p>By default CORDA uses redundancy. This means, in case there are several minimal pathways to reach your objective, CORDA will include all of those (which is good since it gives your model some robustness). In this case this did happen and yields two different forms to produce pep. If we do not want that feature we can modify the parameter n in the CORDA initializer which denotes the maximum number of redundant pathways to include.</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span> 
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">CORDA</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">met_prod</span><span class="o">=</span><span class="s2">&quot;pep&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">opt</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="n">rec_min</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">cobra_model</span><span class="p">(</span><span class="s2">&quot;plus_pep_nored&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;used&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rec_min</span><span class="o">.</span><span class="n">reactions</span><span class="p">),</span> <span class="s2">&quot;reactions&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;# of redundant pathway for pep =&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">redundancies</span><span class="p">[</span><span class="s2">&quot;EX_CORDA_0&quot;</span><span class="p">])</span>
+<span class="n">use</span> <span class="o">=</span> <span class="n">rec_min</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">pep</span><span class="o">.</span><span class="n">reactions</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">use</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">reaction</span><span class="p">)</span>
 </pre></div>
 
 </div>
 </div>
 </div>
 
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+<div class="prompt"></div>
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>used 33 reactions
+# of redundant pathway for pep = 1
+gtp + oaa &lt;=&gt; gdp + pep
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Which now includes only a single pathway to activate each high confidence flux.</p>
+
+</div>
+</div>
 </div>
     </div>
   </div>
 </body>
+
+ 
+
+
 </html>
