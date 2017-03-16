@@ -12,8 +12,8 @@ before_install:
     - pip install -U pytest pytest-cov pytest-benchmark codecov
 
 install:
-  - pip install -U cobra numpy scipy python-libsbml lxml codecov
-  - pip install -e .
+    - pip install -U numpy scipy python-libsbml lxml
+    - pip install -e .
 
 script:
     - py.test --benchmark-skip --cov=corda
