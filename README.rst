@@ -82,7 +82,7 @@ a previous solution basis is recycled repeatedly.
 Some reference times for reconstructing the minimal growing models for
 iJO1366 (*E. coli*) and Recon 2.2:
 
-   .. code:: python
+.. code:: python
 
     In [1]: from cobra.test import create_test_model
 
