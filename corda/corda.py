@@ -329,20 +329,17 @@ class CORDA(object):
         conf = self.__reduce_conf(self.conf)
         return {rid: v == 3 for rid, v in conf.items()}
 
-    def cobra_model(self, name, reversible=True, bound=1000):
+    def cobra_model(self, name=None):
         """Constructs a cobra model for the reconstruction.
-
-        Args:
-            name (str): The name of the cobra model.
-            reversible (Optiona[bool]): Whether the returned model should
-                be reversible. Default is yes.
-            bound (Optional[float]): The default flux bound for the reactions.
 
         Returns:
             A cobra model containing the reconstruction. The original objective
             will be conserved if it is still included in the model.
         """
         mod = self.model
+        if name:
+            mod.name = name
+
         to_remove = []
         for rxn in self.model.reactions:
             co = max(self.conf[rxn.id], self.conf[rxn.reverse_id])

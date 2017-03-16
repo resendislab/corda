@@ -43,6 +43,9 @@ class TestCORDAsimple:
         assert "mock" in r.notes
         with pytest.raises(TypeError):
             CORDA(mod, conf, met_prod=[["C"]])
+        opt.build()
+        mod = opt.cobra_model()
+        assert all(mr not in mod.reactions for mr in opt.mocks)
 
     def test_conf_check(self, model):
         mod, conf = model
