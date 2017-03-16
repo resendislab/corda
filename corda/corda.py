@@ -4,16 +4,11 @@
 #
 #  MIT license. See LICENSE for more information.
 
-from cobra.solvers import solver_dict, get_solver_name
-from cobra.manipulation.modify import convert_to_irreversible, \
-    revert_to_reversible
-from cobra import Model, Reaction
+from cobra import Reaction
 import numpy as np
 from collections import Counter
-import sys
 import re
-from os import devnull
-from copy import deepcopy
+from sympy.core.singleton import S
 
 TOL = 1e-6      # Tolerance to judge whether a flux is non-zero
 UPPER = 1e6     # default upper bound
@@ -69,10 +64,16 @@ class CORDA(object):
     """
 
     def __init__(self, model, confidence, met_prod=None, n=5,
-                 penalty_factor=100, support=5, solver=None, **solver_kwargs):
+                 penalty_factor=100, support=5):
         """Initialize parameters and model"""
-        self.model = deepcopy(model)
-        self.objective = model.objective.copy()
+        self.model = model.copy()
+        self.objective = model.problem.Objective(
+            model.objective.expression,
+            direction=model.objective.direction)
+        self.bounds = {}
+        for r in self.model.reactions:
+            self.bounds[r.id] = r.bounds
+        self.mocks = []
 
         # Add metabolic targets as mock reactions
         arrow_re = re.compile("<?(-+|=+)>")
@@ -83,7 +84,7 @@ class CORDA(object):
                 r = Reaction("EX_CORDA_" + str(i))
                 r.notes["mock"] = mid
                 r.upper_bound = UPPER
-                self.model.add_reaction(r)
+                self.model.add_reactions([r])
                 if type(mid) == str:
                     if arrow_re.search(mid):
                         r.build_reaction_from_string(mid)
@@ -95,23 +96,21 @@ class CORDA(object):
                     raise TypeError("metabolite test not string or dictionary")
                 confidence[r.id] = 3
 
-        convert_to_irreversible(self.model)
-
         # Map confidences from forward to backward reactions
+        self.model.objective = S.Zero
+        self.model.objective.direction = "min"
         self.conf = {}
         for r in self.model.reactions:
-            r.objective_coefficient = 0
-            r.upper_bound = UPPER
+            if r.lower_bound < -TOL:
+                r.lower_bound = -UPPER
+            if r.upper_bound > TOL:
+                r.upper_bound = UPPER
             if r.id in confidence:
                 if confidence[r.id] not in [-1, 0, 1, 2, 3]:
                     raise ValueError("Not a valid confidence value!")
                 else:
                     self.conf[r.id] = confidence[r.id]
-            elif "reflection" in r.notes:
-                rev = self.model.reactions.get_by_id(r.notes["reflection"])
-                if confidence[rev.id] not in [-1, 0, 1, 2, 3]:
-                    raise ValueError("Not a valid confidence value!")
-                self.conf[r.id] = confidence[rev.id]
+                    self.conf[r.reverse_id] = confidence[r.id]
             else:
                 raise ValueError("{} missing from confidences!".format(r.id))
 
@@ -122,40 +121,21 @@ class CORDA(object):
         self.n = n
         self.support = support
         self.pf = penalty_factor
-        self.solver = solver_dict[get_solver_name() if solver is None
-                                  else solver]
-        self.sargs = solver_kwargs
 
-    def __perturb(self, lp, pen):
+    def __perturb(self, pen):
         noise = np.random.uniform(low=UN[0], high=UN[1], size=len(pen))
+        coef = dict(zip(pen.keys(), np.array(list(pen.values())) + noise))
 
-        for i, p in enumerate(pen):
-            if p < 2.0:
-                self.solver.change_variable_objective(lp, i, p + noise[i])
+        self.model.objective.set_linear_coefficients(coef)
 
-    def __quiet_solve(self, lp, os):
-        old = sys.stdout
-        f = open(devnull, 'w')
-        sys.stdout = f
-        try:
-            sol = self.solver.solve_problem(lp, objective_sense=os,
-                                            **self.sargs)
-        finally:
-            sys.stdout = old
-            f.close()
-        return sol
-
-    def __zero_objective(self, lp, m):
-        for i in range(len(m.reactions)):
-            self.solver.change_variable_objective(lp, i, 0.0)
+    def __zero_objective(self):
+        self.model.objective.set_linear_coefficients(
+            {v: 0 for v in self.model.variables})
 
     def __reduce_conf(self, conf):
-        rids = set(k.replace("_reverse", "") for k, v in conf.items())
-        red_conf = dict.fromkeys(rids, -1)
+        rxns = self.model.reactions
+        red_conf = {r.id: max(conf[r.id], conf[r.reverse_id]) for r in rxns}
 
-        for k, v in conf.items():
-            kr = k.replace("_reverse", "")
-            red_conf[kr] = max(red_conf[kr], v)
         return red_conf
 
     def associated(self, targets, conf=None, penalize_medium=True):
@@ -180,36 +160,43 @@ class CORDA(object):
             conf = self.conf
         m = self.model
 
-        penalties = []
+        penalties = {}
         for r in m.reactions:
             if penalize_medium and conf[r.id] in [1, 2]:
-                penalties.append(1)
+                pen = 1
             elif conf[r.id] == -1:
-                penalties.append(self.pf)
+                pen = self.pf
             else:
-                penalties.append(0)
-
-        lp = self.solver.create_problem(m)
+                pen = 0
+            penalties[r.forward_variable] = pen
+            penalties[r.reverse_variable] = pen
 
         needed = {}
-        for rid in targets:
-            ti = m.reactions.index(rid)
-            needed[rid] = np.array([], dtype=str)
-            self.__zero_objective(lp, m)
-            self.solver.change_variable_bounds(lp, ti, self.tflux, UPPER)
+        for vid in targets:
+            va = self.model.variables[vid]
+            needed[vid] = np.array([], dtype=str)
+            self.__zero_objective()
+            old_bounds = (va.lb, va.ub)
+            if va.ub < TOL:
+                continue
+            else:
+                va.lb = max(self.tflux, va.lb)
+                va.ub = UPPER
             for _ in range(self.n):
-                self.__perturb(lp, penalties)
-                sol = self.__quiet_solve(lp, "minimize")
+                self.__perturb(penalties)
+                sol = self.model.solver.optimize()
                 if sol != "optimal":
-                    self.impossible.append(rid)
-                    self.conf[rid] = -1
+                    self.impossible.append(vid)
+                    self.conf[vid] = -1
                     continue
-                sol = self.solver.format_solution(lp, m)
-                need = [r for r in sol.x_dict if sol.x_dict[r] > TOL
-                        and conf[r] in [-1, 1, 2] and r != rid]
-                need = np.hstack([needed[rid], need])
-                needed[rid] = np.unique(need)
-            self.solver.change_variable_bounds(lp, ti, 0.0, UPPER)
+                sol = self.model.solver.primal_values
+                need = [v for v in sol if sol[v] > TOL
+                        and conf[v] in [-1, 1, 2] and v != vid]
+                need = np.hstack([needed[vid], need])
+                needed[vid] = np.unique(need)
+            va.lb, va.ub = old_bounds
+        self.__zero_objective()
+
         return needed
 
     def build(self):
@@ -246,25 +233,25 @@ class CORDA(object):
             self.conf[a] = 3
 
         not_included = [rid for rid in self.conf if self.conf[rid] == -1]
-        for rid in not_included:
-            self.model.reactions.get_by_id(rid).upper_bound = 0.0
-        lp = self.solver.create_problem(self.model)
-        for i, r in enumerate(self.model.reactions):
-            if self.conf[r.id] == 1 or self.conf[r.id] == 2:
-                self.solver.change_variable_objective(lp, i, 1.0)
-                sol = self.__quiet_solve(lp, "maximize")
-                if sol == "optimal":
-                    sol = self.solver.format_solution(lp, self.model)
-                    if sol.f > self.tflux:
-                        self.conf[r.id] = 3
-            self.solver.change_variable_objective(lp, i, 0.0)
+        for vid in not_included:
+            v = self.model.variables[vid]
+            v.ub = max(0.0, v.lb)
+        self.__zero_objective()
+        for i, v in enumerate(self.model.variables):
+            if self.conf[v.name] == 1 or self.conf[v.name] == 2:
+                self.model.objective.set_linear_coefficients({v: 1})
+                sol = self.model.solver.optimize()
+                if (sol == "optimal" and
+                        self.model.objective.value > self.tflux):
+                        self.conf[v.name] = 3
+            self.model.objective.set_linear_coefficients({v: 0})
 
         # Third iteration block all non-included N+M add free reactions
-        for rid, co in self.conf.items():
+        for vid, co in self.conf.items():
             if co == 1 or co == 2:
-                self.model.reactions.get_by_id(rid).upper_bound = 0.0
+                self.model.variables[vid].ub = 0.0
             elif co == 0:
-                self.conf[rid] = -1
+                self.conf[vid] = -1
         need = self.associated([k for k in self.conf if self.conf[k] == 3],
                                penalize_medium=False)
         add = np.unique([x for v in need.values() for x in v])
@@ -274,7 +261,7 @@ class CORDA(object):
         self.impossible = np.unique(self.impossible).tolist()
         self.built = True
 
-    def info(self, reversible=True):
+    def info(self):
         """Gives basic performance infos about the reconstruction.
 
         Generates an acceptably nice output describing which reactions
@@ -290,12 +277,8 @@ class CORDA(object):
             A formatted output string.
         """
 
-        if reversible:
-            conf = self.__reduce_conf(self.conf)
-            conf_old = self.__reduce_conf(self.__conf_old)
-        else:
-            conf = self.conf
-            conf_old = self.__conf_old
+        conf = self.__reduce_conf(self.conf)
+        conf_old = self.__reduce_conf(self.__conf_old)
         old_counts = Counter([conf_old[k] for k in conf_old])
 
         if not self.built:
@@ -324,7 +307,11 @@ class CORDA(object):
         return out
 
     def __str__(self):
-        return self.info(reversible=True)
+        return self.info()
+
+    @property
+    def confidence(self):
+        return self.__reduce_conf(self.conf)
 
     def cobra_model(self, name, reversible=True, bound=1000):
         """Constructs a cobra model for the reconstruction.
@@ -339,25 +326,17 @@ class CORDA(object):
             A cobra model containing the reconstruction. The original objective
             will be conserved if it is still included in the model.
         """
-        new_mod = Model(name)
-        m = deepcopy(self.model)
-        for rid in self.conf:
-            r = m.reactions.get_by_id(rid)
-            if self.conf[rid] == 3 and "mock" not in r.notes:
-                if r not in new_mod.reactions:
-                    r.upper_bound = bound
-                    new_mod.add_reaction(r)
-                if "reflection" in r.notes:
-                    rev = m.reactions.get_by_id(r.notes["reflection"])
-                    if rev not in new_mod.reactions:
-                        rev.upper_bound = bound
-                        new_mod.add_reaction(rev)
-
-        if reversible:
-            revert_to_reversible(new_mod)
-        still_valid = True
-        for r in self.objective:
-            still_valid &= (self.conf[r.id] == 3)
+        mod = self.model
+        to_remove = []
+        for rxn in self.model.reactions:
+            co = max(self.conf[rxn.id], self.conf[rxn.reverse_id])
+            if co == 3 and rxn not in self.mocks:
+                rxn.bounds = self.bounds[rxn.id]
+            else:
+                to_remove.append(rxn)
+        mod.remove_reactions(to_remove)
+        still_valid = all(v.name in mod.variables for v in
+                          self.objective.variables)
         if still_valid:
-            new_mod.change_objective(self.objective)
-        return new_mod
+            mod.objective = self.objective
+        return mod

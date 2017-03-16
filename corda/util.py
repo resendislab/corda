@@ -5,7 +5,7 @@
 #  MIT license. See LICENSE for more information.
 
 import re
-from cobra.core.Gene import parse_gpr
+from cobra.core.gene import parse_gpr
 from ast import Name, And, Or, BoolOp, Expression
 
 

@@ -171,8 +171,7 @@ class TestCORDAlarge:
         opt = CORDA(*large)
         opt.build()
         assert "reconstruction complete" in str(opt)
-        assert "/60" in opt.info(reversible=True)
-        assert "/101" in opt.info(reversible=False)
+        assert "/60" in opt.info()
 
     def test_build_works(self, large):
         opt = CORDA(*large)
@@ -180,8 +179,8 @@ class TestCORDAlarge:
         include = [c for c in opt.conf if opt.conf[c] == 3]
         assert len(include) > 3
         rec = opt.cobra_model("reconstruction")
-        rec.optimize()
-        assert rec.solution.f > 1
+        sol = rec.optimize()
+        assert sol.f > 1
 
 if __name__ == '__main__':
     pytest.main()
