@@ -5,9 +5,8 @@
 #  MIT license. See LICENSE for more information.
 
 import pytest
-from corda import CORDA, reaction_confidence, test_model
+from corda import CORDA
 from cobra import Model, Reaction, Metabolite
-from cobra.manipulation import convert_to_irreversible, revert_to_reversible
 
 
 @pytest.fixture
@@ -30,60 +29,6 @@ def model():
     conf = {"r1": 1, "r2": -1, "EX_A": 1, "EX_B": 1, "EX_C": 1}
 
     return (mod, conf)
-
-
-@pytest.fixture
-def large():
-    mod = test_model()
-    conf = {}
-    for i, r in enumerate(mod.reactions):
-        if i % 2 == 0:
-            conf[r.id] = -1
-        else:
-            conf[r.id] = 2
-    conf["r60"] = 3
-
-    return (mod, conf)
-
-
-class TestConf:
-    @pytest.mark.parametrize("case", [
-        ("g1 and g2 or g3", 2), ("g1 and (g2 or g3)", -1),
-        ("g1 or g2 or g4 or g5", 3), ("g3 and g6", 0), ("", 0)
-        ])
-    def test_confidence(self, case):
-        vals = {"g1": -1, "g2": 1, "g3": 2, "g4": 3}
-        conf = reaction_confidence(case[0], vals)
-        assert conf == case[1]
-
-    @pytest.mark.parametrize("case", ["print()", "A + B", "A ^ B"])
-    def test_eval_safe(self, case):
-        with pytest.raises(TypeError):
-            reaction_confidence(case, {})
-
-    def test_none(self):
-        assert reaction_confidence("  ", {}) == 0
-
-
-class TestMisc:
-
-    def test_remove_breaks(self):
-        model = Model("test model")
-        A = Metabolite("A")
-        r = Reaction("r")
-        r.add_metabolites({A: -1})
-        r.lower_bound = -1000
-        r.upper_bound = 1000
-        model.add_reaction(r)
-        convert_to_irreversible(model)
-        model.remove_reactions(["r"])
-        with pytest.raises(KeyError):
-            revert_to_reversible(model)
-
-    def test_cemet(self):
-        model = test_model()
-        assert len(model.reactions) == 60
-        assert len(model.metabolites) == 43
 
 
 class TestCORDAsimple:
@@ -138,49 +83,13 @@ class TestCORDAsimple:
         conf["r2"] = 2
         opt = CORDA(mod, conf, met_prod="C ->")
         need = opt.associated(["EX_CORDA_0"], conf)
-        assert len(need["EX_CORDA_0"]) >= 2
-        opt.n = 1
+        assert len(need["EX_CORDA_0"]) == 4
+        assert opt.redundancies["EX_CORDA_0"] == 1
+        opt = CORDA(mod, conf, met_prod="C ->", n=1)
         need = opt.associated(["EX_CORDA_0"], conf)
         assert len(need["EX_CORDA_0"]) == 2
+        assert opt.redundancies["EX_CORDA_0"] == 0
 
-
-class TestCORDAlarge:
-
-    def test_init_works(self, large):
-        opt = CORDA(*large)
-        assert len(opt.conf) > 0
-
-    def test_association_work(self, large):
-        opt = CORDA(*large)
-        need = opt.associated(["r60"])
-        assert len(need["r60"]) > 0
-
-    def test_conf_vals(self, large):
-        mod, conf = large
-        for r in mod.reactions:
-            conf[r.id] = 1
-        conf["r60"] = 3
-        conf["r42"] = 0
-        conf["r12"] = 1
-        opt = CORDA(mod, conf)
-        opt.build()
-        include = [c for c in opt.conf if opt.conf[c] == 3]
-        assert len(include) > 3
-
-    def test_performance_metrics(self, large):
-        opt = CORDA(*large)
-        opt.build()
-        assert "reconstruction complete" in str(opt)
-        assert "/60" in opt.info()
-
-    def test_build_works(self, large):
-        opt = CORDA(*large)
-        opt.build()
-        include = [c for c in opt.conf if opt.conf[c] == 3]
-        assert len(include) > 3
-        rec = opt.cobra_model("reconstruction")
-        sol = rec.optimize()
-        assert sol.f > 1
 
 if __name__ == '__main__':
     pytest.main()

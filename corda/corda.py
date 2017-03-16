@@ -12,7 +12,7 @@ from sympy.core.singleton import S
 
 TOL = 1e-6      # Tolerance to judge whether a flux is non-zero
 UPPER = 1e6     # default upper bound
-UN = (1e-6, 1e-4)     # uniform noise
+CI = 1.01      # cost increase for redundancy detection
 
 
 class CORDA(object):
@@ -47,7 +47,8 @@ class CORDA(object):
         n (Optional[int]): The maximum amount of redundant pathways that can be
             detected for a given high confidence reaction. For example for
             n=5 (the default) CORDA will include *at most* 5 different pathways
-            to activate each of the high confidence reactions.
+            to activate each of the high confidence reactions. Defaults to
+            including all redundant pathways.
         penalty_factor (Optional[float]): How much more to penalize -1
             confidence in comparison to low confidence. The default is to
             penalize 100 times more.
@@ -61,9 +62,12 @@ class CORDA(object):
             are included.
         impossible (list): A list of reaction IDs that were chosen as high
             confidence at some point but can not carry sufficient flux.
+        redundancies (dict): A dictionary {rid: n} which defines how many
+            redundant pathways there are in the reconstruction to activate
+            the (irreversible) reaction `rid`.
     """
 
-    def __init__(self, model, confidence, met_prod=None, n=5,
+    def __init__(self, model, confidence, met_prod=None, n=np.inf,
                  penalty_factor=100, support=5):
         """Initialize parameters and model"""
         self.model = model.copy()
@@ -100,6 +104,7 @@ class CORDA(object):
         self.model.objective = S.Zero
         self.model.objective.direction = "min"
         self.conf = {}
+        self.redundancies = {}
         for r in self.model.reactions:
             if r.lower_bound < -TOL:
                 r.lower_bound = -UPPER
@@ -111,6 +116,8 @@ class CORDA(object):
                 else:
                     self.conf[r.id] = confidence[r.id]
                     self.conf[r.reverse_id] = confidence[r.id]
+                    self.redundancies[r.id] = -1
+                    self.redundancies[r.reverse_id] = -1
             else:
                 raise ValueError("{} missing from confidences!".format(r.id))
 
@@ -122,11 +129,8 @@ class CORDA(object):
         self.support = support
         self.pf = penalty_factor
 
-    def __perturb(self, pen):
-        noise = np.random.uniform(low=UN[0], high=UN[1], size=len(pen))
-        coef = dict(zip(pen.keys(), np.array(list(pen.values())) + noise))
-
-        self.model.objective.set_linear_coefficients(coef)
+    def __corda_objective(self, pen):
+        self.model.objective.set_linear_coefficients(pen)
 
     def __zero_objective(self):
         self.model.objective.set_linear_coefficients(
@@ -167,31 +171,45 @@ class CORDA(object):
             elif conf[r.id] == -1:
                 pen = self.pf
             else:
-                pen = 0
+                continue
             penalties[r.forward_variable] = pen
             penalties[r.reverse_variable] = pen
 
         needed = {}
         for vid in targets:
-            va = self.model.variables[vid]
+            va = m.variables[vid]
             needed[vid] = np.array([], dtype=str)
             self.__zero_objective()
             old_bounds = (va.lb, va.ub)
             if va.ub < TOL:
+                self.impossible.append(vid)
+                self.conf[vid] = -1
                 continue
             else:
                 va.lb = max(self.tflux, va.lb)
                 va.ub = UPPER
-            for _ in range(self.n):
-                self.__perturb(penalties)
+            has_new = True
+            pen = penalties.copy()
+            iteration = 0
+            while has_new and iteration < self.n:
+                self.__corda_objective(pen)
                 sol = self.model.solver.optimize()
+                iteration += 1
                 if sol != "optimal":
                     self.impossible.append(vid)
                     self.conf[vid] = -1
-                    continue
+                    break
                 sol = self.model.solver.primal_values
-                need = [v for v in sol if sol[v] > TOL
-                        and conf[v] in [-1, 1, 2] and v != vid]
+                need = np.array([v for v in sol if sol[v] > TOL
+                                 and conf[v] in [-1, 1, 2] and v != vid])
+                new = np.in1d(need, needed[vid], assume_unique=True,
+                              invert=True)
+                has_new = new.any()
+                self.redundancies[vid] += has_new
+                for vi in need[new]:
+                    v = m.variables[vi]
+                    if v in pen:
+                        pen[v] *= CI
                 need = np.hstack([needed[vid], need])
                 needed[vid] = np.unique(need)
             va.lb, va.ub = old_bounds
@@ -260,8 +278,11 @@ class CORDA(object):
 
         self.impossible = np.unique(self.impossible).tolist()
         self.built = True
+        self.redundancies = {rid: v for rid, v in self.redundancies.items()
+                             if self.conf[rid] == 3
+                             and rid not in self.impossible}
 
-    def info(self):
+    def __str__(self):
         """Gives basic performance infos about the reconstruction.
 
         Generates an acceptably nice output describing which reactions
@@ -306,12 +327,10 @@ class CORDA(object):
                 " - high: {}/{}\n".format(high_inc, old_counts[3])
         return out
 
-    def __str__(self):
-        return self.info()
-
     @property
-    def confidence(self):
-        return self.__reduce_conf(self.conf)
+    def included(self):
+        conf = self.__reduce_conf(self.conf)
+        return {rid: v == 3 for rid, v in conf.items()}
 
     def cobra_model(self, name, reversible=True, bound=1000):
         """Constructs a cobra model for the reconstruction.
