@@ -175,10 +175,9 @@ class CORDA(object):
             penalties[r.forward_variable] = pen
             penalties[r.reverse_variable] = pen
 
-        needed = {}
+        needed = np.array([], dtype=str)
         for vid in targets:
             va = m.variables[vid]
-            needed[vid] = np.array([], dtype=str)
             self.__zero_objective()
             old_bounds = (va.lb, va.ub)
             if va.ub < TOL:
@@ -202,7 +201,7 @@ class CORDA(object):
                 sol = self.model.solver.primal_values
                 need = np.array([v for v in sol if sol[v] > TOL
                                  and conf[v] in [-1, 1, 2] and v != vid])
-                new = np.in1d(need, needed[vid], assume_unique=True,
+                new = np.in1d(need, needed, assume_unique=True,
                               invert=True)
                 has_new = new.any()
                 self.redundancies[vid] += has_new
@@ -210,8 +209,7 @@ class CORDA(object):
                     v = m.variables[vi]
                     if v in pen:
                         pen[v] *= CI
-                need = np.hstack([needed[vid], need])
-                needed[vid] = np.unique(need)
+                needed = np.unique(np.hstack([needed, need]))
             va.lb, va.ub = old_bounds
         self.__zero_objective()
 
@@ -235,8 +233,7 @@ class CORDA(object):
         # First iteration - find reactions required for high confidence
         include = [r.id for r in self.model.reactions if self.conf[r.id] == 3]
         need = self.associated(include)
-        add = np.unique([x for v in need.values() for x in v])
-        for a in add:
+        for a in need:
             self.conf[a] = 3
 
         # Second iteration - add the best no confidence and independent medium
@@ -244,7 +241,7 @@ class CORDA(object):
         include = [r.id for r in self.model.reactions
                    if self.conf[r.id] in [1, 2]]
         need = self.associated(include, penalize_medium=False)
-        add = [x for v in need.values() for x in v if self.conf[x] == -1]
+        add = [x for x in need if self.conf[x] == -1]
         count = Counter(add)
         add = [k for k in count if count[k] >= self.support]
         for a in add:
@@ -272,8 +269,7 @@ class CORDA(object):
                 self.conf[vid] = -1
         need = self.associated([k for k in self.conf if self.conf[k] == 3],
                                penalize_medium=False)
-        add = np.unique([x for v in need.values() for x in v])
-        for a in add:
+        for a in need:
             self.conf[a] = 3
 
         self.impossible = np.unique(self.impossible).tolist()

@@ -34,6 +34,8 @@ This will download and install cobrapy as well. I recommend using a
 version of pip that supports manylinux builds for faster installation
 (pip>=8.1).
 
+*Note that this package uses a development version of COBRApy (0.6.0).*
+
 For now the master branch is usually working and tested whereas all new
 features are kept in its own branch. To install from the master branch
 directly use
@@ -59,29 +61,74 @@ How do I use it?
 
 A small tutorial is found at https://cdiener.github.io/corda.
 
-What's the advantage over other reconstruction algorithms
----------------------------------------------------------
+What's the advantage over other reconstruction algorithms?
+----------------------------------------------------------
 
-I would say there are two major advantages:
+No commercial solver needed
+***************************
 
-1. It does not require any commercial solvers, in fact it works fastest
-   with the free glpk solver that already comes together with cobrapy.
-   For instance for the small central metabolism model (101 irreversible
-   reactions) included together with CORDA the reconstruction uses the
-   following times:
+It does not require any commercial solvers, in fact it works fastest
+with the free glpk solver that already comes together with cobrapy.
+For instance for the small central metabolism model (101 irreversible
+reactions) included together with CORDA the glpk version is a bout 3 times
+faster than the fastest tested commercial solver (cplex).
 
-   - cglpk: 0.02 s
-   - cplex: 0.30 s
-   - gurobi: 0.12 s
-   - mosek: 0.23 s
+Fast reconstructions
+********************
 
-2. It's fast. CORDA for Python uses a strategy similar to FastFVA, where
-   a previous solution basis is recycled repeatedly (speed-up of ~4-10
-   times). A normal reconstruction for Recon 1 with mCADRE can take
-   several hours. With the original Matlab implementation of CORDA this
-   takes about 40 minutes and with CORDA for Python it takes less than 5
-   minutes. A Recon 2 reconstruction can be achieved in less than 30
-   minutes.
+CORDA for Python uses a strategy similar to FastFVA, where
+a previous solution basis is recycled repeatedly.
+
+Some reference times for reconstructing the minimal growing models for
+iJO1366 (*E. coli*) and Recon 2.2:
+
+   .. code:: python
+
+    In [1]: from cobra.test import create_test_model
+
+    In [2]: from cobra.io import read_sbml_model
+
+    In [3]: from corda import CORDA
+
+    In [4]: ecoli = create_test_model("ecoli")
+
+    In [5]: conf = {}
+
+    In [6]: for r in ecoli.reactions:
+       ...:     conf[r.id] = -1
+       ...:
+
+    In [7]: conf["Ec_biomass_iJO1366_core_53p95M"] = 3
+
+    In [8]: %time opt = CORDA(ecoli, conf)
+    CPU times: user 425 ms, sys: 41.5 ms, total: 466 ms
+    Wall time: 466 ms
+
+    In [9]: %time opt.build()
+    CPU times: user 13.6 s, sys: 734 µs, total: 13.6 s
+    Wall time: 13.6 s
+
+    In [10]:
+
+    In [10]: recon2 = read_sbml_model("/home/cdiener/Downloads/recon2.xml")
+    cobra/io/sbml.py:235 UserWarning: M_h_x appears as a reactant and product FAOXC220200x
+
+    In [11]: conf = {}
+
+    In [12]: for r in recon2.reactions:
+        ...:     conf[r.id] = -1
+        ...:
+
+    In [13]: conf["biomass_reaction"] = 3
+
+    In [14]: %time opt = CORDA(recon2, conf)
+    CPU times: user 1.39 s, sys: 149 ms, total: 1.54 s
+    Wall time: 1.55 s
+
+    In [15]: %time opt.build()
+    CPU times: user 54.2 s, sys: 0 ns, total: 54.2 s
+    Wall time: 54.3 s
+
 
 .. |travis| image:: https://travis-ci.org/cdiener/corda.svg?branch=master
    :target: https://travis-ci.org/cdiener/corda
