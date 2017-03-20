@@ -4,6 +4,13 @@
 #
 #  MIT license. See LICENSE for more information.
 
+"""This is a Python implementation based on the paper of Schultz et. al.
+
+Reconstruction of Tissue-Specific Metabolic Networks Using CORDA
+<http://journals.plos.org/ploscompbiol/article/
+ authors?id=10.1371%2Fjournal.pcbi.1004808>
+"""
+
 from cobra import Reaction
 import numpy as np
 from collections import Counter
@@ -69,7 +76,7 @@ class CORDA(object):
 
     def __init__(self, model, confidence, met_prod=None, n=np.inf,
                  penalty_factor=100, support=5):
-        """Initialize parameters and model"""
+        """Initialize parameters and model."""
         self.model = model.copy()
         self.objective = model.problem.Objective(
             model.objective.expression,
@@ -144,7 +151,7 @@ class CORDA(object):
         return red_conf
 
     def associated(self, targets, conf=None, penalize_medium=True):
-        """Gets the associated reactions for the target reactions.
+        """Get the associated reactions for a list of target reactions.
 
         `associated` calculates the smallest subset of reactions that
         are necessary so that the targets can carry flux.
@@ -160,7 +167,6 @@ class CORDA(object):
             dict: A dictionary of str->np.array mapping the reactions IDs
                 of the targets to a numpy array of the associated reactions.
         """
-
         if conf is None:
             conf = self.conf
         m = self.model
@@ -217,7 +223,7 @@ class CORDA(object):
         return needed
 
     def build(self):
-        """Constructs a tissue-specific model.
+        """Construct a tissue-specific model.
 
         This function will initiate the build process and is the only
         computation-heavy part of CORDA.
@@ -280,7 +286,7 @@ class CORDA(object):
                              and rid not in self.impossible}
 
     def __str__(self):
-        """Gives basic performance infos about the reconstruction.
+        """Obtain basic performance infos about the reconstruction.
 
         Generates an acceptably nice output describing which reactions
         from each confidence level were included in the reconstruction.
@@ -294,7 +300,6 @@ class CORDA(object):
         Returns:
             A formatted output string.
         """
-
         conf = self.__reduce_conf(self.conf)
         conf_old = self.__reduce_conf(self.__conf_old)
         old_counts = Counter([conf_old[k] for k in conf_old])
@@ -326,11 +331,17 @@ class CORDA(object):
 
     @property
     def included(self):
+        """Show which reactions are included/excluded from the reconstruction.
+
+        Returns:
+            A dictionary {rid: True/False} indicating whether the reaction with
+            ID `rid` has been included in the reconstruction.
+        """
         conf = self.__reduce_conf(self.conf)
         return {rid: v == 3 for rid, v in conf.items()}
 
     def cobra_model(self, name=None):
-        """Constructs a cobra model for the reconstruction.
+        """Construct a cobra model for the reconstruction.
 
         Returns:
             A cobra model containing the reconstruction. The original objective
