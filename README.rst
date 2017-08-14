@@ -11,7 +11,7 @@ some added optimizations. It is based on the following two publiactions:
 - `IDENTIFYING CANCER SPECIFIC METABOLIC SIGNATURES USING CONSTRAINT-BASED MODELS
   <http://dx.doi.org/10.1142/9789813207813_0045>`_
 
- This Python package is developed in the
+This Python package is developed in the
 `Human Systems Biology Group <https://resendislba.github.io>`_ of
 Prof. Osbaldo Resendis Antonio at the `National Institute of Genomic
 Medicine Mexico <https://inmegen.gob.mx>`_ and includes recent updates to
