@@ -3,10 +3,17 @@
 CORDA for Python
 ================
 
-This is a Python implementation based on the paper of Schultz et. al.
+This is a Python implementation based on the papers of Schultz et. al.
 
 `Reconstruction of Tissue-Specific Metabolic Networks Using
 CORDA <http://journals.plos.org/ploscompbiol/article/authors?id=10.1371%2Fjournal.pcbi.1004808>`__
+
+and
+
+`IDENTIFYING CANCER SPECIFIC METABOLIC SIGNATURES USING CONSTRAINT-BASED MODELS 
+<http://dx.doi.org/10.1142/9789813207813_0045>`__
+
+It includes recent updates to the method (*CORDA 2*).
 
 What does it do?
 ----------------
@@ -33,8 +40,6 @@ here as well) you can install corda with pip
 This will download and install cobrapy as well. I recommend using a
 version of pip that supports manylinux builds for faster installation
 (pip>=8.1).
-
-*Note that this package uses a development version of COBRApy (0.6.0).*
 
 For now the master branch is usually working and tested whereas all new
 features are kept in its own branch. To install from the master branch
