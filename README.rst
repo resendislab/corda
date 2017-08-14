@@ -3,17 +3,27 @@
 CORDA for Python
 ================
 
-This is a Python implementation based on the papers of Schultz et. al.
+This is a Python implementation based on the papers of Schultz et. al. with
+some added optimizations. It is based on the following two publiactions:
 
-`Reconstruction of Tissue-Specific Metabolic Networks Using
+- `Reconstruction of Tissue-Specific Metabolic Networks Using
 CORDA <http://journals.plos.org/ploscompbiol/article/authors?id=10.1371%2Fjournal.pcbi.1004808>`__
-
-and
-
-`IDENTIFYING CANCER SPECIFIC METABOLIC SIGNATURES USING CONSTRAINT-BASED MODELS 
+- `IDENTIFYING CANCER SPECIFIC METABOLIC SIGNATURES USING CONSTRAINT-BASED MODELS
 <http://dx.doi.org/10.1142/9789813207813_0045>`__
 
-It includes recent updates to the method (*CORDA 2*).
+ This Python package is developed in the
+`Human Systems Biology Group <https://resendislba.github.io>`_ of
+Prof. Osbaldo Resendis Antonio at the `National Institute of Genomic
+Medicine Mexico <https://inmegen.gob.mx>`_ and includes recent updates to
+the method (*CORDA 2*).
+
+
+How to cite?
+------------
+
+This particular implementation of CORDA has not been published so far. In the
+meantime you should if you cite the respective publications for the method
+mentioned above and provide a link to this GitHub repository.
 
 What does it do?
 ----------------
@@ -47,7 +57,7 @@ directly use
 
 .. code:: bash
 
-    pip install https://github.com/cdiener/corda/archive/master.zip
+    pip install https://github.com/resendislab/corda/archive/master.zip
 
 What do I need to run it?
 -------------------------
@@ -64,7 +74,7 @@ absent (-1) reactions while maintaining a set of metabolic requirements.
 How do I use it?
 ----------------
 
-A small tutorial is found at https://cdiener.github.io/corda.
+A small tutorial is found at https://resendislab.github.io/corda.
 
 What's the advantage over other reconstruction algorithms?
 ----------------------------------------------------------
@@ -135,11 +145,11 @@ iJO1366 (*E. coli*) and Recon 2.2:
     Wall time: 54.3 s
 
 
-.. |travis| image:: https://travis-ci.org/cdiener/corda.svg?branch=master
-   :target: https://travis-ci.org/cdiener/corda
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/14cd6e4vbh6l2csr/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/cdiener/corda/branch/master
-.. |codecov.io| image:: https://codecov.io/github/cdiener/corda/coverage.svg?branch=master
-   :target: https://codecov.io/github/cdiener/corda?branch=master
-.. |Code Health| image:: https://landscape.io/github/cdiener/corda/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/cdiener/corda/master
+.. |travis| image:: https://travis-ci.org/resendislab/corda.svg?branch=master
+   :target: https://travis-ci.org/resendislab/corda
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/scjn7v751cv4dgr2/branch/master?svg=true
+   :target: https://ci.appveyor.com/project/resendislab/corda/branch/master
+.. |codecov.io| image:: https://codecov.io/github/resendislab/corda/coverage.svg?branch=master
+   :target: https://codecov.io/github/resendislab/corda?branch=master
+.. |Code Health| image:: https://landscape.io/github/resendislab/corda/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/resendislab/corda/master
