@@ -7,9 +7,9 @@ This is a Python implementation based on the papers of Schultz et. al. with
 some added optimizations. It is based on the following two publiactions:
 
 - `Reconstruction of Tissue-Specific Metabolic Networks Using
-CORDA <http://journals.plos.org/ploscompbiol/article/authors?id=10.1371%2Fjournal.pcbi.1004808>`__
+  CORDA <http://journals.plos.org/ploscompbiol/article/authors?id=10.1371%2Fjournal.pcbi.1004808>`_
 - `IDENTIFYING CANCER SPECIFIC METABOLIC SIGNATURES USING CONSTRAINT-BASED MODELS
-<http://dx.doi.org/10.1142/9789813207813_0045>`__
+  <http://dx.doi.org/10.1142/9789813207813_0045>`_
 
  This Python package is developed in the
 `Human Systems Biology Group <https://resendislba.github.io>`_ of
