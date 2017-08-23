@@ -238,15 +238,14 @@ class CORDA(object):
             raise ValueError("Model has been constructed already!")
 
         # First iteration - find reactions required for high confidence
-        include = [r.id for r in self.model.reactions if self.conf[r.id] == 3]
+        include = [i for i, c in self.conf.items() if c == 3]
         need = self.associated(include)
         for a in need:
             self.conf[a] = 3
 
         # Second iteration - add the best no confidence and independent medium
         # confidence
-        include = [r.id for r in self.model.reactions
-                   if self.conf[r.id] in [1, 2]]
+        include = [i for i, c in self.conf.items() if c in [1, 2]]
         need = self.associated(include, penalize_medium=False)
         add = [x for x in need if self.conf[x] == -1]
         count = Counter(add)
@@ -254,7 +253,7 @@ class CORDA(object):
         for a in add:
             self.conf[a] = 3
 
-        not_included = [rid for rid in self.conf if self.conf[rid] == -1]
+        not_included = [i for i, c in self.conf.items() if c == -1]
         for vid in not_included:
             v = self.model.variables[vid]
             v.ub = max(0.0, v.lb)
