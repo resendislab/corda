@@ -17,8 +17,7 @@ from collections import Counter
 import re
 from sympy.core.singleton import S
 
-TOL = 1e-6      # Tolerance to judge whether a flux is non-zero
-UPPER = 1e6     # default upper bound
+UPPER = 1e6    # default upper bound
 CI = 1.01      # cost increase for redundancy detection
 
 
@@ -60,7 +59,7 @@ class CORDA(object):
             confidence in comparison to low confidence. The default is to
             penalize 100 times more.
         support (Optional[int]): The reconstruction will include an absent (-1)
-            reaction if it allows includion of at least `support` additional
+            reaction if it allows inclusion of at least `support` additional
             medium confidence reactions.
         solver (Optional[str]): The LP solver to use.
 
@@ -85,6 +84,7 @@ class CORDA(object):
         for r in self.model.reactions:
             self.bounds[r.id] = r.bounds
         self.mocks = []
+        self.tol = self.model.solver.configuration.tolerances.feasibility
 
         # Add metabolic targets as mock reactions
         arrow_re = re.compile("<?(-+|=+)>")
@@ -114,9 +114,9 @@ class CORDA(object):
         self.conf = {}
         self.redundancies = {}
         for r in self.model.reactions:
-            if r.lower_bound < -TOL:
+            if r.lower_bound < -self.tol:
                 r.lower_bound = -UPPER
-            if r.upper_bound > TOL:
+            if r.upper_bound > self.tol:
                 r.upper_bound = UPPER
             if r.id in confidence:
                 if confidence[r.id] not in [-1, 0, 1, 2, 3]:
@@ -187,7 +187,7 @@ class CORDA(object):
             va = m.variables[vid]
             self.__zero_objective()
             old_bounds = (va.lb, va.ub)
-            if va.ub < TOL:
+            if va.ub < self.tol:
                 self.impossible.append(vid)
                 self.conf[vid] = -1
                 continue
@@ -206,7 +206,7 @@ class CORDA(object):
                     self.conf[vid] = -1
                     break
                 sol = self.model.solver.primal_values
-                need = np.array([v for v in sol if sol[v] > TOL
+                need = np.array([v for v in sol if sol[v] > self.tol
                                  and conf[v] in [-1, 1, 2] and v != vid])
                 new = np.in1d(need, needed, assume_unique=True,
                               invert=True)
