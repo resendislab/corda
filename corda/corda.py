@@ -15,7 +15,7 @@ from cobra import Reaction
 import numpy as np
 from collections import Counter
 import re
-from sympy.core.singleton import S
+from optlang.symbolics import Zero
 
 UPPER = 1e6    # default upper bound
 CI = 1.01      # cost increase for redundancy detection
@@ -109,7 +109,7 @@ class CORDA(object):
                 confidence[r.id] = 3
 
         # Map confidences from forward to backward reactions
-        self.model.objective = S.Zero
+        self.model.objective = Zero
         self.model.objective.direction = "min"
         self.conf = {}
         self.redundancies = {}

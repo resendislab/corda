@@ -11726,9 +11726,7 @@ body {
 div#notebook {
   overflow: visible;
   border-top: none;
-}
-
-@media print {
+}@media print {
   div.cell {
     display: block;
     page-break-inside: avoid;
@@ -11749,7 +11747,7 @@ div#notebook {
 
 <!-- Loading mathjax macro -->
 <!-- Load mathjax -->
-    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     <!-- MathJax configuration -->
     <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
@@ -11773,8 +11771,7 @@ div#notebook {
   <div tabindex="-1" id="notebook" class="border-box-sizing">
     <div class="container" id="notebook-container">
 
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -11782,8 +11779,7 @@ div#notebook {
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -11791,8 +11787,7 @@ div#notebook {
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -11834,7 +11829,20 @@ div#notebook {
 
 
 <div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading symengine... This feature is in beta testing. Please report any issues you encounter on http://github.com/biosustain/optlang/issues
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
 <div class="prompt output_prompt">Out[1]:</div>
+
 
 
 
@@ -11848,8 +11856,7 @@ div#notebook {
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -11857,8 +11864,7 @@ div#notebook {
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -11887,7 +11893,9 @@ div#notebook {
 
 
 <div class="output_area">
+
 <div class="prompt output_prompt">Out[2]:</div>
+
 
 
 
@@ -11901,8 +11909,7 @@ div#notebook {
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -11928,7 +11935,9 @@ div#notebook {
 
 
 <div class="output_area">
+
 <div class="prompt output_prompt">Out[3]:</div>
+
 
 
 
@@ -11942,8 +11951,7 @@ div#notebook {
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -11967,8 +11975,7 @@ div#notebook {
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -11998,7 +12005,9 @@ div#notebook {
 
 
 <div class="output_area">
+
 <div class="prompt"></div>
+
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>build status: reconstruction complete
@@ -12016,8 +12025,7 @@ Inc. reactions: 33/60
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -12043,10 +12051,12 @@ Inc. reactions: 33/60
 
 
 <div class="output_area">
+
 <div class="prompt"></div>
 
+
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>[&#39;cit &lt;=&gt; icit&#39;, &#39;icit + nad &lt;=&gt; akg + nadh&#39;, &#39;fdp &lt;=&gt; dhap + g3p&#39;, &#39; --&gt; adp&#39;, &#39;g6p &lt;=&gt; f6p&#39;, &#39; &lt;=&gt; gln&#39;, &#39;r5p &lt;=&gt; ru5p_D&#39;, &#39; &lt;=&gt; pi&#39;, &#39;mal_L + nad &lt;=&gt; nadh + oaa&#39;, &#39;atp + r5p &lt;=&gt; amp + prpp&#39;, &#39;0.39253 3pg + 20.7045 atp + 0.15446 cit + 0.38587 glu + 0.35261 oaa + 0.053446 prpp + 0.50563 pyr --&gt; 20.6508 adp + 20.6508 pi&#39;, &#39; --&gt; g1p&#39;, &#39;3pg + atp &lt;=&gt; 13dpg + adp&#39;, &#39; &lt;=&gt; amp&#39;, &#39;nadh --&gt; nad&#39;, &#39;atp + f6p --&gt; adp + fdp&#39;, &#39;e4p + xu5p_D &lt;=&gt; f6p + g3p&#39;, &#39;icit + nadp &lt;=&gt; akg + nadph&#39;, &#39;dhap &lt;=&gt; g3p&#39;, &#39;gln &lt;=&gt; glu&#39;, &#39;g1p &lt;=&gt; g6p&#39;, &#39;mal_L + nadp &lt;=&gt; nadph + pyr&#39;, &#39;atp + pyr --&gt; adp + oaa + pi&#39;, &#39;glu + nadp &lt;=&gt; akg + nadph&#39;, &#39;glu + nad &lt;=&gt; akg + nadh&#39;, &#39;ru5p_D &lt;=&gt; xu5p_D&#39;, &#39;adp + pi --&gt; atp&#39;, &#39;lac_L &lt;=&gt; &#39;, &#39;g3p + s7p &lt;=&gt; e4p + f6p&#39;, &#39;lac_L + nad &lt;=&gt; nadh + pyr&#39;, &#39;g3p + nad + pi &lt;=&gt; 13dpg + nadh&#39;, &#39;r5p + xu5p_D &lt;=&gt; g3p + s7p&#39;, &#39;mal_L + nad &lt;=&gt; nadh + pyr&#39;]
+<pre>[&#39;fdp &lt;=&gt; dhap + g3p&#39;, &#39;g3p + nad + pi &lt;=&gt; 13dpg + nadh&#39;, &#39;atp + f6p --&gt; adp + fdp&#39;, &#39;g6p &lt;=&gt; f6p&#39;, &#39;3pg + atp &lt;=&gt; 13dpg + adp&#39;, &#39;g1p &lt;=&gt; g6p&#39;, &#39;dhap &lt;=&gt; g3p&#39;, &#39;lac_L + nad &lt;=&gt; nadh + pyr&#39;, &#39;atp + r5p &lt;=&gt; amp + prpp&#39;, &#39;ru5p_D &lt;=&gt; xu5p_D&#39;, &#39;r5p &lt;=&gt; ru5p_D&#39;, &#39;g3p + s7p &lt;=&gt; e4p + f6p&#39;, &#39;r5p + xu5p_D &lt;=&gt; g3p + s7p&#39;, &#39;e4p + xu5p_D &lt;=&gt; f6p + g3p&#39;, &#39;cit &lt;=&gt; icit&#39;, &#39;icit + nad &lt;=&gt; akg + nadh&#39;, &#39;icit + nadp &lt;=&gt; akg + nadph&#39;, &#39;mal_L + nad &lt;=&gt; nadh + oaa&#39;, &#39;mal_L + nad &lt;=&gt; nadh + pyr&#39;, &#39;mal_L + nadp &lt;=&gt; nadph + pyr&#39;, &#39;atp + pyr --&gt; adp + oaa + pi&#39;, &#39;gln &lt;=&gt; glu&#39;, &#39;glu + nad &lt;=&gt; akg + nadh&#39;, &#39;glu + nadp &lt;=&gt; akg + nadph&#39;, &#39;adp + pi --&gt; atp&#39;, &#39;nadh --&gt; nad&#39;, &#39; --&gt; g1p&#39;, &#39; &lt;=&gt; gln&#39;, &#39; --&gt; adp&#39;, &#39; &lt;=&gt; amp&#39;, &#39; &lt;=&gt; pi&#39;, &#39;lac_L &lt;=&gt; &#39;, &#39;0.39253 3pg + 20.7045 atp + 0.15446 cit + 0.38587 glu + 0.35261 oaa + 0.053446 prpp + 0.50563 pyr --&gt; 20.6508 adp + 20.6508 pi&#39;]
 </pre>
 </div>
 </div>
@@ -12055,8 +12065,7 @@ Inc. reactions: 33/60
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -12066,8 +12075,7 @@ Inc. reactions: 33/60
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -12095,7 +12103,9 @@ Inc. reactions: 33/60
 
 
 <div class="output_area">
+
 <div class="prompt"></div>
+
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>build status: reconstruction complete
@@ -12113,8 +12123,7 @@ Inc. reactions: 39/61
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -12143,7 +12152,9 @@ Inc. reactions: 39/61
 
 
 <div class="output_area">
+
 <div class="prompt"></div>
+
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre># of redundant pathway for pep = 2
@@ -12157,8 +12168,7 @@ gtp + oaa &lt;=&gt; gdp + pep
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -12191,7 +12201,9 @@ gtp + oaa &lt;=&gt; gdp + pep
 
 
 <div class="output_area">
+
 <div class="prompt"></div>
+
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>used 33 reactions
@@ -12205,8 +12217,7 @@ gtp + oaa &lt;=&gt; gdp + pep
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
