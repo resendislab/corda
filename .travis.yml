@@ -12,11 +12,10 @@ before_install:
     - pip install -U pytest pytest-cov pytest-benchmark codecov
 
 install:
-    - pip install -U python-libsbml lxml symengine sympy
+    - pip install -U python-libsbml lxml sympy
     - pip install -e .
 
 script:
-    - OPTLANG_USE_SYMENGINE=off py.test --benchmark-skip
     - py.test --benchmark-skip --cov=corda
 
 after_success:

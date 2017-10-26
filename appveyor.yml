@@ -16,7 +16,7 @@ install:
   # We need wheel installed to build wheels
   - "%PYTHON%\\python.exe -m pip install -U pip"
   - "%PYTHON%\\python.exe -m pip install wheel pytest pytest-benchmark"
-  - "%PYTHON%\\python.exe -m pip install sympy symengine"
+  - "%PYTHON%\\python.exe -m pip install sympy"
   - "%PYTHON%\\python.exe -m pip install -e ."
 
 build: off
@@ -30,7 +30,6 @@ test_script:
   # the interpreter you're using - Appveyor does not do anything special
   # to put the Python evrsion you want to use on PATH.
   - "%PYTHON%\\Scripts\\py.test --benchmark-skip"
-  - "set OPTLANG_USE_SYMENGINE=off && %PYTHON%\\Scripts\\py.test --benchmark-skip"
 
 after_test:
   # This step builds your wheels.
