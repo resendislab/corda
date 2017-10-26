@@ -99,72 +99,72 @@ iJO1366 (*E. coli*) and Recon 2.2:
 
 .. code:: python
 
-In [1]: from cobra.test import create_test_model
-Loading symengine... This feature is in beta testing. Please report any issues you encounter on http://github.com/biosustain/optlang/issues
+    In [1]: from cobra.test import create_test_model
+    Loading symengine... This feature is in beta testing. Please report any issues you encounter on http://github.com/biosustain/optlang/issues
 
-In [2]: from cobra.io import read_sbml_model
+    In [2]: from cobra.io import read_sbml_model
 
-In [3]: from corda import CORDA
+    In [3]: from corda import CORDA
 
-In [4]: ecoli = create_test_model("ecoli")
+    In [4]: ecoli = create_test_model("ecoli")
 
-In [5]: conf = {}
+    In [5]: conf = {}
 
-In [6]: for r in ecoli.reactions:
-   ...:     conf[r.id] = -1
-   ...:
-
-In [7]: conf["Ec_biomass_iJO1366_core_53p95M"] = 3
-
-In [8]: %time opt = CORDA(ecoli, conf)
-CPU times: user 282 ms, sys: 1.81 ms, total: 284 ms
-Wall time: 284 ms
-
-In [9]: %time opt.build()
-CPU times: user 9.04 s, sys: 93 µs, total: 9.04 s
-Wall time: 9.05 s
-
-In [10]: print(opt)
-build status: reconstruction complete
-Inc. reactions: 456/2583
- - unclear: 0/0
- - exclude: 455/2582
- - low and medium: 0/0
- - high: 1/1
-
-
-In [11]:
-
-In [12]: recon2 = read_sbml_model("/home/cdiener/Downloads/recon_2.2.xml")
-cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product RE3453C
-cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product RE3459C
-cobra/io/sbml.py:235 UserWarning: M_h_x appears as a reactant and product FAOXC24C22x
-cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product HAS1
-cobra/io/sbml.py:235 UserWarning: M_h2o_x appears as a reactant and product PROFVSCOAhc
-
-In [13]: conf = {}
-
-In [14]: for r in recon2.reactions:
+    In [6]: for r in ecoli.reactions:
     ...:     conf[r.id] = -1
     ...:
 
-In [15]: conf["biomass_reaction"] = 3
+    In [7]: conf["Ec_biomass_iJO1366_core_53p95M"] = 3
 
-In [16]: %time opt = CORDA(recon2, conf)
-CPU times: user 1 s, sys: 8.95 ms, total: 1.01 s
-Wall time: 1.01 s
+    In [8]: %time opt = CORDA(ecoli, conf)
+    CPU times: user 282 ms, sys: 1.81 ms, total: 284 ms
+    Wall time: 284 ms
 
-In [17]: %time opt.build()
-CPU times: user 24.7 s, sys: 240 µs, total: 24.7 s
-Wall time: 24.8 s
+    In [9]: %time opt.build()
+    CPU times: user 9.04 s, sys: 93 µs, total: 9.04 s
+    Wall time: 9.05 s
 
-In [28]: print(opt)
-build status: reconstruction complete
-Inc. reactions: 395/7864
- - unclear: 0/0
- - exclude: 394/7863
- - low and medium: 0/0
- - high: 1/1
+    In [10]: print(opt)
+    build status: reconstruction complete
+    Inc. reactions: 456/2583
+    - unclear: 0/0
+    - exclude: 455/2582
+    - low and medium: 0/0
+    - high: 1/1
+
+
+    In [11]:
+
+    In [12]: recon2 = read_sbml_model("/home/cdiener/Downloads/recon_2.2.xml")
+    cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product RE3453C
+    cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product RE3459C
+    cobra/io/sbml.py:235 UserWarning: M_h_x appears as a reactant and product FAOXC24C22x
+    cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product HAS1
+    cobra/io/sbml.py:235 UserWarning: M_h2o_x appears as a reactant and product PROFVSCOAhc
+
+    In [13]: conf = {}
+
+    In [14]: for r in recon2.reactions:
+        ...:     conf[r.id] = -1
+        ...:
+
+    In [15]: conf["biomass_reaction"] = 3
+
+    In [16]: %time opt = CORDA(recon2, conf)
+    CPU times: user 1 s, sys: 8.95 ms, total: 1.01 s
+    Wall time: 1.01 s
+
+    In [17]: %time opt.build()
+    CPU times: user 24.7 s, sys: 240 µs, total: 24.7 s
+    Wall time: 24.8 s
+
+    In [28]: print(opt)
+    build status: reconstruction complete
+    Inc. reactions: 395/7864
+    - unclear: 0/0
+    - exclude: 394/7863
+    - low and medium: 0/0
+    - high: 1/1
 
 .. |travis| image:: https://travis-ci.org/resendislab/corda.svg?branch=master
    :target: https://travis-ci.org/resendislab/corda
