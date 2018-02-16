@@ -357,7 +357,7 @@ class CORDA(object):
                 rxn.bounds = self.bounds[rxn.id]
             else:
                 to_remove.append(rxn)
-        mod.remove_reactions(to_remove)
+        mod.remove_reactions(to_remove, remove_orphans=True)
         still_valid = all(v.name in mod.variables for v in
                           self.objective.variables)
         if still_valid:
