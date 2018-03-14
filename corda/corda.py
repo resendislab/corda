@@ -150,7 +150,8 @@ class CORDA(object):
 
         return red_conf
 
-    def associated(self, targets, conf=None, penalize_medium=True):
+    def associated(self, targets, conf=None, penalize_medium=True,
+                   redundancies=True):
         """Get the associated reactions for a list of target reactions.
 
         `associated` calculates the smallest subset of reactions that
@@ -162,6 +163,7 @@ class CORDA(object):
                 calculation.
             penalize_medium (Optional[bool]): Whether to penalize medium
                 confidence reactions.
+            redundancies (Optional[bool]): Whether to get redundancies.
 
         Returns:
             dict: A dictionary of str->np.array mapping the reactions IDs
@@ -182,6 +184,8 @@ class CORDA(object):
             penalties[r.forward_variable] = pen
             penalties[r.reverse_variable] = pen
 
+        max_iter = self.n if redundancies else 1
+
         needed = np.array([], dtype=str)
         for vid in targets:
             va = m.variables[vid]
@@ -197,7 +201,8 @@ class CORDA(object):
             has_new = True
             pen = penalties.copy()
             iteration = 0
-            while has_new and iteration < self.n:
+            needed_for_v = np.array([], dtype=str)
+            while has_new and iteration < max_iter:
                 self.__corda_objective(pen)
                 sol = self.model.solver.optimize()
                 iteration += 1
@@ -208,15 +213,17 @@ class CORDA(object):
                 sol = self.model.solver.primal_values
                 need = np.array([v for v in sol if sol[v] > self.tol
                                  and conf[v] in [-1, 1, 2] and v != vid])
-                new = np.in1d(need, needed, assume_unique=True,
+                new = np.in1d(need, needed_for_v, assume_unique=True,
                               invert=True)
                 has_new = new.any()
-                self.redundancies[vid] += has_new
+                if redundancies:
+                    self.redundancies[vid] += has_new
                 for vi in need[new]:
                     v = m.variables[vi]
                     if v in pen:
                         pen[v] *= CI
-                needed = np.unique(np.hstack([needed, need]))
+                needed_for_v = np.unique(np.hstack([needed_for_v, need]))
+            needed = np.hstack([needed, needed_for_v])
             va.lb, va.ub = old_bounds
         self.__zero_objective()
 
@@ -240,7 +247,7 @@ class CORDA(object):
         # First iteration - find reactions required for high confidence
         include = [i for i, c in self.conf.items() if c == 3]
         need = self.associated(include)
-        for a in need:
+        for a in np.unique(need):
             self.conf[a] = 3
 
         # Second iteration - add the best no confidence and independent medium
@@ -253,12 +260,12 @@ class CORDA(object):
         for a in add:
             self.conf[a] = 3
 
-        not_included = [i for i, c in self.conf.items() if c == -1]
+        not_included = [vid for vid, c in self.conf.items() if c == -1]
         for vid in not_included:
             v = self.model.variables[vid]
             v.ub = max(0.0, v.lb)
         self.__zero_objective()
-        for i, v in enumerate(self.model.variables):
+        for v in self.model.variables:
             if self.conf[v.name] == 1 or self.conf[v.name] == 2:
                 self.model.objective.set_linear_coefficients({v: 1})
                 sol = self.model.solver.optimize()
@@ -274,15 +281,15 @@ class CORDA(object):
             elif co == 0:
                 self.conf[vid] = -1
         need = self.associated([k for k in self.conf if self.conf[k] == 3],
-                               penalize_medium=False)
-        for a in need:
+                               penalize_medium=False, redundancies=False)
+        for a in np.unique(need):
             self.conf[a] = 3
 
-        self.impossible = np.unique(self.impossible).tolist()
+        self.impossible = np.unique(self.impossible)
         self.built = True
-        self.redundancies = {rid: v for rid, v in self.redundancies.items()
-                             if self.conf[rid] == 3
-                             and rid not in self.impossible}
+        self.redundancies = {vid: v for vid, v in self.redundancies.items()
+                             if self.conf[vid] == 3
+                             and vid not in self.impossible}
 
     def __str__(self):
         """Obtain basic performance infos about the reconstruction.
@@ -362,4 +369,6 @@ class CORDA(object):
                           self.objective.variables)
         if still_valid:
             mod.objective = self.objective
+        else:
+            mod.objective = Zero
         return mod
