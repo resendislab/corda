@@ -31,19 +31,6 @@ class TestConf:
 
 class TestMisc:
 
-    def test_remove_breaks(self):
-        model = Model("test model")
-        A = Metabolite("A")
-        r = Reaction("r")
-        r.add_metabolites({A: -1})
-        r.lower_bound = -1000
-        r.upper_bound = 1000
-        model.add_reaction(r)
-        convert_to_irreversible(model)
-        model.remove_reactions(["r"])
-        with pytest.raises(KeyError):
-            revert_to_reversible(model)
-
     def test_cemet(self):
         model = test_model()
         assert len(model.reactions) == 60

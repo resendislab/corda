@@ -16,8 +16,10 @@ import numpy as np
 from collections import Counter
 import re
 from optlang.symbolics import Zero
+from optlang.interface import OPTIMAL
 
-UPPER = 1e6    # default upper bound
+UPPER = 1e6    # default internal bound for metabolic requirements
+SCALE = 1e3    # default bound scaling
 CI = 1.01      # cost increase for redundancy detection
 
 
@@ -115,9 +117,13 @@ class CORDA(object):
         self.redundancies = {}
         for r in self.model.reactions:
             if r.lower_bound < -self.tol:
-                r.lower_bound = -UPPER
+                r.lower_bound *= SCALE
+            else:
+                r.lower_bound = 0
             if r.upper_bound > self.tol:
-                r.upper_bound = UPPER
+                r.upper_bound *= SCALE
+            else:
+                r.upper_bound = 0
             if r.id in confidence:
                 if confidence[r.id] not in [-1, 0, 1, 2, 3]:
                     raise ValueError("Not a valid confidence value!")
@@ -197,7 +203,6 @@ class CORDA(object):
                 continue
             else:
                 va.lb = max(self.tflux, va.lb)
-                va.ub = UPPER
             has_new = True
             pen = penalties.copy()
             iteration = 0
@@ -269,8 +274,8 @@ class CORDA(object):
             if self.conf[v.name] == 1 or self.conf[v.name] == 2:
                 self.model.objective.set_linear_coefficients({v: 1})
                 sol = self.model.solver.optimize()
-                if (sol == "optimal" and
-                        self.model.objective.value > self.tflux):
+                if (sol == OPTIMAL and
+                        self.model.solver.objective.value > self.tflux):
                         self.conf[v.name] = 3
             self.model.objective.set_linear_coefficients({v: 0})
 
