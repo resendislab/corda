@@ -32,11 +32,9 @@ jobs:
         pip install wheel
     - name: Install CORDA
       run: pip install -e .
-    - name: install CPLEX
+    - name: install solvers
       if: matrix.python-version != '3.11'
-      run: pip install cplex
-    - name: install Gurobi
-      run: pip install gurobipy
+      run: pip install cplex gurobipy
     - name: Lint with flake8
       run: |
         pip install flake8
