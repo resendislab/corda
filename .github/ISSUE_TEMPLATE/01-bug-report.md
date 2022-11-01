@@ -8,7 +8,7 @@ about: Report a bug to help improve CORDA
 Before you create a new problem report, please look through the list of existing open
  and closed issues to see if there are similar ones.
 
-https://github.com/micom-dev/micom/issues
+https://github.com/resendislab/corda/issues
 
 -->
 
@@ -37,7 +37,7 @@ Create a [minimal, complete, verifiable example](https://stackoverflow.com/help/
 <!-- Please run the following code and paste the output between the ``` tickmarks below
 inside the details block.
 
-python -c "import micom; micom.show_versions()"
+python -c "import cobra; cobra.show_versions()"
 
 -->
 
