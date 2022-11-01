@@ -143,5 +143,5 @@ iJO1366 (*E. coli*) and Recon3:
 
 .. |action| image:: https://github.com/resendislab/corda/actions/workflows/pythonpackage.yml/badge.svg
    :target: https://github.com/resendislab/corda/actions/workflows/pythonpackage.yml
-.. |codecov.io| image:: https://codecov.io/github/resendislab/corda/coverage.svg?branch=master
-   :target: https://codecov.io/github/resendislab/corda?branch=master
+.. |codecov.io| image:: https://codecov.io/github/resendislab/corda/coverage.svg?branch=main
+   :target: https://codecov.io/github/resendislab/corda?branch=main
