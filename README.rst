@@ -141,11 +141,7 @@ iJO1366 (*E. coli*) and Recon3:
     - low and medium: 0/0
     - high: 1/1
 
-.. |travis| image:: https://travis-ci.org/resendislab/corda.svg?branch=master
-   :target: https://travis-ci.org/resendislab/corda
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/vr0ibaiqb5lnu3ii/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/cdiener/corda-69at9/branch/master
+.. |action| image:: https://github.com/resendislab/corda/actions/workflows/pythonpackage.yml/badge.svg
+   :target: https://github.com/resendislab/corda/actions/workflows/pythonpackage.yml
 .. |codecov.io| image:: https://codecov.io/github/resendislab/corda/coverage.svg?branch=master
    :target: https://codecov.io/github/resendislab/corda?branch=master
-.. |Code Health| image:: https://landscape.io/github/resendislab/corda/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/resendislab/corda/master
