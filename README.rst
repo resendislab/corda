@@ -1,4 +1,4 @@
-|travis| |appveyor| |codecov.io| |Code Health|
+|actions| |codecov.io|
 
 CORDA for Python
 ================
@@ -74,7 +74,7 @@ absent (-1) reactions while maintaining a set of metabolic requirements.
 How do I use it?
 ----------------
 
-A small tutorial is found at https://resendislab.github.io/corda.
+You can follow the [introduction](docs/index.ipynb).
 
 What's the advantage over other reconstruction algorithms?
 ----------------------------------------------------------
@@ -95,74 +95,49 @@ CORDA for Python uses a strategy similar to FastFVA, where
 a previous solution basis is recycled repeatedly.
 
 Some reference times for reconstructing the minimal growing models for
-iJO1366 (*E. coli*) and Recon 2.2:
+iJO1366 (*E. coli*) and Recon3:
 
-.. code:: python
+.. code::
 
-    In [1]: from cobra.test import create_test_model
-    Loading symengine... This feature is in beta testing. Please report any issues you encounter on http://github.com/biosustain/optlang/issues
+    Python 3.10.8 (main, Oct 24 2022, 10:07:16) [GCC 12.2.0]
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 8.4.0 -- An enhanced Interactive Python. Type '?' for help.
 
-    In [2]: from cobra.io import read_sbml_model
+    In [1]: from cobra.io import load_model
 
-    In [3]: from corda import CORDA
+    In [2]: from corda import benchmark
 
-    In [4]: ecoli = create_test_model("ecoli")
+    In [3]: ecoli = load_model("iJO1366")
+    Restricted license - for non-production use only - expires 2023-10-25
 
-    In [5]: conf = {}
+    In [4]: opt = benchmark(ecoli)
+    Running setup for model `iJO1366`.
+    Running CORDA setup... ✔ [0.479 s]
+    Running CORDA build... ✔ [7.44 s]
+    Running validation on reduced model... ✔ [0.448 s]
 
-    In [6]: for r in ecoli.reactions:
-    ...:     conf[r.id] = -1
-    ...:
-
-    In [7]: conf["Ec_biomass_iJO1366_core_53p95M"] = 3
-
-    In [8]: %time opt = CORDA(ecoli, conf)
-    CPU times: user 282 ms, sys: 1.81 ms, total: 284 ms
-    Wall time: 284 ms
-
-    In [9]: %time opt.build()
-    CPU times: user 9.04 s, sys: 93 µs, total: 9.04 s
-    Wall time: 9.05 s
-
-    In [10]: print(opt)
+    In [5]: print(opt)
     build status: reconstruction complete
-    Inc. reactions: 456/2583
+    Inc. reactions: 447/2583
     - unclear: 0/0
-    - exclude: 455/2582
+    - exclude: 446/2582
     - low and medium: 0/0
     - high: 1/1
 
 
-    In [11]:
+    In [6]: recon3 = load_model("Recon3D")
 
-    In [12]: recon2 = read_sbml_model("/home/cdiener/Downloads/recon_2.2.xml")
-    cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product RE3453C
-    cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product RE3459C
-    cobra/io/sbml.py:235 UserWarning: M_h_x appears as a reactant and product FAOXC24C22x
-    cobra/io/sbml.py:235 UserWarning: M_h_c appears as a reactant and product HAS1
-    cobra/io/sbml.py:235 UserWarning: M_h2o_x appears as a reactant and product PROFVSCOAhc
+    In [7]: opt = benchmark(recon3)
+    Running setup for model `Recon3D`.
+    Running CORDA setup... ✔ [2 s]
+    Running CORDA build... ✔ [13.7 s]
+    Running validation on reduced model... ✔ [1.68 s]
 
-    In [13]: conf = {}
-
-    In [14]: for r in recon2.reactions:
-        ...:     conf[r.id] = -1
-        ...:
-
-    In [15]: conf["biomass_reaction"] = 3
-
-    In [16]: %time opt = CORDA(recon2, conf)
-    CPU times: user 1 s, sys: 8.95 ms, total: 1.01 s
-    Wall time: 1.01 s
-
-    In [17]: %time opt.build()
-    CPU times: user 24.7 s, sys: 240 µs, total: 24.7 s
-    Wall time: 24.8 s
-
-    In [28]: print(opt)
+    In [8]: print(opt)
     build status: reconstruction complete
-    Inc. reactions: 395/7864
+    Inc. reactions: 114/10600
     - unclear: 0/0
-    - exclude: 394/7863
+    - exclude: 113/10599
     - low and medium: 0/0
     - high: 1/1
 

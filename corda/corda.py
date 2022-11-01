@@ -16,6 +16,7 @@ import numpy as np
 from collections import Counter
 import re
 from optlang.symbolics import Zero
+import warnings
 
 UPPER = 1e6    # default upper bound
 CI = 1.01      # cost increase for redundancy detection
@@ -52,9 +53,9 @@ class CORDA(object):
             For instance: met_prod = "adp_c + pi_c -> atp_c"
         n (Optional[int]): The maximum amount of redundant pathways that can be
             detected for a given high confidence reaction. For example for
-            n=5 (the default) CORDA will include *at most* 5 different pathways
-            to activate each of the high confidence reactions. Defaults to
-            including all redundant pathways.
+            n=3 (the default) CORDA will include *at most* 3 different pathways
+            to activate each of the high confidence reactions.
+            **Note that setting a high n can make the build much slower!**
         penalty_factor (Optional[float]): How much more to penalize -1
             confidence in comparison to low confidence. The default is to
             penalize 100 times more.
@@ -73,7 +74,7 @@ class CORDA(object):
             the (irreversible) reaction `rid`.
     """
 
-    def __init__(self, model, confidence, met_prod=None, n=np.inf,
+    def __init__(self, model, confidence, met_prod=None, n=3,
                  penalty_factor=100, support=5):
         """Initialize parameters and model."""
         self.model = model.copy()
@@ -96,7 +97,7 @@ class CORDA(object):
                 r.notes["mock"] = mid
                 r.upper_bound = UPPER
                 self.model.add_reactions([r])
-                self.mocks.append(r)
+                self.mocks.append(r.id)
                 if type(mid) == str:
                     if arrow_re.search(mid):
                         r.build_reaction_from_string(mid)
@@ -271,7 +272,7 @@ class CORDA(object):
                 sol = self.model.solver.optimize()
                 if (sol == "optimal" and
                         self.model.objective.value > self.tflux):
-                        self.conf[v.name] = 3
+                    self.conf[v.name] = 3
             self.model.objective.set_linear_coefficients({v: 0})
 
         # Third iteration block all non-included N+M add free reactions
@@ -353,18 +354,20 @@ class CORDA(object):
             A cobra model containing the reconstruction. The original objective
             will be conserved if it is still included in the model.
         """
-        mod = self.model
+        mod = self.model.copy()
         if name:
             mod.name = name
 
         to_remove = []
-        for rxn in self.model.reactions:
+        for rxn in mod.reactions:
             co = max(self.conf[rxn.id], self.conf[rxn.reverse_id])
-            if co == 3 and rxn not in self.mocks:
+            if co == 3 and rxn.id not in self.mocks:
                 rxn.bounds = self.bounds[rxn.id]
             else:
                 to_remove.append(rxn)
-        mod.remove_reactions(to_remove, remove_orphans=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            mod.remove_reactions(to_remove, remove_orphans=True)
         still_valid = all(v.name in mod.variables for v in
                           self.objective.variables)
         if still_valid:

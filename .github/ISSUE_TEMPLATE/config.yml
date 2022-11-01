@@ -1,0 +1,8 @@
+# Ref: https://help.github.com/en/github/building-a-strong-community/configuring-issue-templates-for-your-repository#configuring-the-template-chooser
+blank_issues_enabled: true
+contact_links:
+- name: 💬 Gitter
+  url: https://gitter.im/opencobra/cobrapy
+  about: >
+    If you want to chat about CORDA you can do so on the COBRApy gitter chat by
+    pinging @cdiener.
