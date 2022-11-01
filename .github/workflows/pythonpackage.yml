@@ -33,6 +33,7 @@ jobs:
     - name: Install CORDA
       run: pip install -e .
     - name: install CPLEX
+      if: matrix.python-version != "3.11"
       run: pip install cplex
     - name: install Gurobi
       run: pip install gurobipy
