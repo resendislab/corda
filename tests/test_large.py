@@ -62,7 +62,7 @@ class TestCORDAlarge:
         assert len(include) > 3
         rec = opt.cobra_model("reconstruction")
         sol = rec.optimize()
-        assert sol.f > 1
+        assert sol.objective_value > 1
 
     @pytest.mark.parametrize("solver", solvers)
     def test_benchmark_large(self, large, benchmark, solver):
